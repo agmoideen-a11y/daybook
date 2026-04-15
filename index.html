@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Day Book Entry</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f4; }
+        .form-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h2 { color: #333; text-align: center; }
+        input, select, button { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #28a745; color: white; border: none; font-size: 16px; cursor: pointer; }
+        button:hover { background-color: #218838; }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h2>Day Book Entry</h2>
+    <form id="daybookForm">
+        <input type="date" name="date" required>
+        <input type="text" name="voucher" placeholder="Voucher/Receipt No">
+        <input type="text" name="particulars" placeholder="Particulars (വിവരണം)" required>
+        <input type="number" name="income" placeholder="Income (വരവ്)" value="0">
+        <input type="number" name="expense" placeholder="Expense (ചിലവ്)" value="0">
+        <button type="submit" id="submitBtn">Submit to Sheet</button>
+    </form>
+</div>
+
+<script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxw36Z8klnBrrYULcPzT1hTLW0_G_kJhCx4QlToRaYkrb6cVizcHVs1r7Zw04j8CUoE/exec';
+    const form = document.getElementById('daybookForm');
+
+    form.addEventListener('submit', e => {
+        e.preventDefault();
+        document.getElementById('submitBtn').innerHTML = "Sending...";
+        fetch(scriptURL, { method: 'POST', body: new FormData(form)})
+            .then(response => {
+                alert("വിവരങ്ങൾ ഷീറ്റിലേക്ക് മാറ്റി!");
+                form.reset();
+                document.getElementById('submitBtn').innerHTML = "Submit to Sheet";
+            })
+            .catch(error => alert('Error!', error.message));
+    });
+</script>
+
+</body>
+</html>

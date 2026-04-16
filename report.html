@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day Book Report</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f4; padding: 15px; }
+        .container { background: white; padding: 20px; border-radius: 8px; max-width: 900px; margin: auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #2c3e50; border-bottom: 2px solid #28a745; padding-bottom: 10px; }
+        .summary-box { display: flex; justify-content: space-around; background: #e8f5e9; padding: 15px; border-radius: 8px; margin: 20px 0; font-weight: bold; font-size: 14px; border: 1px solid #c8e6c9; }
+        .summary-item { text-align: center; }
+        .income-text { color: #28a745; }
+        .expense-text { color: #d32f2f; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #28a745; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .print-btn { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; float: right; margin-bottom: 10px; font-weight: bold; }
+        @media print { .print-btn { display: none; } body { padding: 0; } .container { box-shadow: none; max-width: 100%; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <button class="print-btn" onclick="window.print()">Print (പ്രിന്റ് എടുക്കുക)</button>
+    <h2>മദ്രസ ഡേ ബുക്ക് റിപ്പോർട്ട്</h2>
+    
+    <div class="summary-box" id="summary">
+        ഡാറ്റ ലോഡ് ചെയ്യുന്നു... ദയവായി കാത്തിരിക്കുക.
+    </div>
+
+    <div style="overflow-x:auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>തീയതി</th>
+                    <th>വൗച്ചർ/റസീപ്റ്റ്</th>
+                    <th>വിവരണം</th>
+                    <th class="income-text">വരവ്</th>
+                    <th class="expense-text">ചിലവ്</th>
+                    <th>ബാലൻസ്</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxw36Z8klnBrrYULcPzT1hTLW0_G_kJhCx4QlToRaYkrb6cVizcHVs1r7Zw04j8CUoE/exec';
+
+    function loadData() {
+        fetch(scriptURL + "?action=read")
+            .then(res => res.json())
+            .then(data => {
+                let rows = '';
+                let totalIncome = 0;
+                let totalExpense = 0;
+                let lastBalance = 0;
+
+                data.forEach(item => {
+                    let inc = parseFloat(item.income) || 0;
+                    let exp = parseFloat(item.expense) || 0;
+                    totalIncome += inc;
+                    totalExpense += exp;
+                    lastBalance = item.balance;
+
+                    rows += `<tr>
+                        <td>${item.date}</td>
+                        <td>${item.voucher || ''}</td>
+                        <td>${item.particulars}</td>
+                        <td class="income-text">${inc}</td>
+                        <td class="expense-text">${exp}</td>
+                        <td style="font-weight:bold;">${item.balance}</td>
+                    </tr>`;
+                });
+
+                document.getElementById('tableBody').innerHTML = rows;
+                document.getElementById('summary').innerHTML = `
+                    <div class="summary-item">ആകെ വരവ്<br><span class="income-text">${totalIncome}</span></div>
+                    <div class="summary-item">ആകെ ചിലവ്<br><span class="expense-text">${totalExpense}</span></div>
+                    <div class="summary-item">ബാക്കി കൈവശമുള്ളത്<br><span style="color:#007bff">${totalIncome - totalExpense}</span></div>
+                `;
+            })
+            .catch(err => {
+                document.getElementById('summary').innerHTML = "ഡാറ്റ ലഭിക്കുന്നതിൽ പരാജയപ്പെട്ടു. Apps Script ശരിയായി സെറ്റ് ചെയ്തിട്ടുണ്ടോ എന്ന് പരിശോധിക്കുക.";
+                console.error(err);
+            });
+    }
+    window.onload = loadData;
+</script>
+
+</body>
+</html>

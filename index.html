@@ -24,17 +24,17 @@
         <label>തീയതി (Date)</label>
         <input type="date" name="date" id="todayDate" required>
 
-        <label>വൗച്ചർ നമ്പർ (Voucher No)</label>
-        <input type="text" name="voucher" placeholder="ഉദാ: 101">
+        <label>വൗച്ചർ / റസീപ്റ്റ് നമ്പർ (Voucher/Receipt No)</label>
+        <input type="text" name="voucher" placeholder="ഉദാ: V101 അല്ലെങ്കിൽ R202">
 
         <label>വിവരണം (Particulars)</label>
         <input type="text" name="particulars" placeholder="എന്തിനുള്ള തുക?" required>
 
         <label>വരവ് (Income)</label>
-        <input type="number" name="income" value="0">
+        <input type="number" name="income" value="0" onfocus="if(this.value=='0')this.value='';" onblur="if(this.value=='')this.value='0';">
 
         <label>ചിലവ് (Expense)</label>
-        <input type="number" name="expense" value="0">
+        <input type="number" name="expense" value="0" onfocus="if(this.value=='0')this.value='';" onblur="if(this.value=='')this.value='0';">
 
         <label>പാസ്‌വേഡ് (PIN)</label>
         <input type="password" name="pincode" placeholder="****" required>
@@ -45,7 +45,6 @@
 </div>
 
 <script>
-    // ഇന്നത്തെ തീയതി ഓട്ടോമാറ്റിക് ആയി വരാൻ
     document.getElementById('todayDate').valueAsDate = new Date();
 
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxw36Z8klnBrrYULcPzT1hTLW0_G_kJhCx4QlToRaYkrb6cVizcHVs1r7Zw04j8CUoE/exec';

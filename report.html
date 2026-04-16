@@ -3,25 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Day Book Report</title>
+    <title>Day Book Report - Advanced</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f4; padding: 15px; }
-        .container { background: white; padding: 20px; border-radius: 8px; max-width: 900px; margin: auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .container { background: white; padding: 20px; border-radius: 8px; max-width: 950px; margin: auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: #2c3e50; border-bottom: 2px solid #28a745; padding-bottom: 10px; }
+        .filter-section { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ddd; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .filter-section input, .filter-section select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
         th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
         th { background-color: #28a745; color: white; }
-        .total-row { background-color: #e8f5e9; font-weight: bold; font-size: 16px; border-top: 2px solid #28a745; }
+        .total-row { background-color: #e8f5e9; font-weight: bold; font-size: 16px; }
         .income-text { color: #28a745; }
         .expense-text { color: #d32f2f; }
-        .print-btn { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; float: right; margin-bottom: 10px; }
-        @media print { .print-btn { display: none; } }
+        .btn { background: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .print-btn { background: #28a745; }
+        @media print { .filter-section, .print-btn { display: none; } }
     </style>
 </head>
 <body>
+
 <div class="container">
-    <button class="print-btn" onclick="window.print()">Print Report</button>
     <h2>മദ്രസ ഡേ ബുക്ക് റിപ്പോർട്ട്</h2>
+    
+    <div class="filter-section">
+        <label>തീയതി മുതൽ:</label>
+        <input type="date" id="fromDate">
+        <label>വരെ:</label>
+        <input type="date" id="toDate">
+        
+        <label>ഫിൽറ്റർ:</label>
+        <select id="typeFilter">
+            <option value="all">എല്ലാം (All)</option>
+            <option value="income">വരവ് മാത്രം (Income Only)</option>
+            <option value="expense">ചിലവ് മാത്രം (Expense Only)</option>
+        </select>
+        
+        <button class="btn" onclick="applyFilters()">കാണുക (Filter)</button>
+        <button class="btn print-btn" onclick="window.print()">Print</button>
+    </div>
+
     <table id="reportTable">
         <thead>
             <tr>
@@ -38,24 +59,67 @@
         </tfoot>
     </table>
 </div>
+
 <script>
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxw36Z8klnBrrYULcPzT1hTLW0_G_kJhCx4QlToRaYkrb6cVizcHVs1r7Zw04j8CUoE/exec';
+    let allData = [];
+
     function loadData() {
         fetch(scriptURL + "?action=read")
             .then(res => res.json())
             .then(data => {
-                let rows = '';
-                let tInc = 0; let tExp = 0; let bal = 0;
-                data.forEach(item => {
-                    let i = parseFloat(item.income) || 0;
-                    let e = parseFloat(item.expense) || 0;
-                    tInc += i; tExp += e; bal = bal + i - e;
-                    rows += `<tr><td>${item.date}</td><td>${item.particulars}</td><td class="income-text">${i}</td><td class="expense-text">${e}</td><td style="font-weight:bold;">${bal}</td></tr>`;
-                });
-                document.getElementById('tableBody').innerHTML = rows;
-                document.getElementById('totalRow').innerHTML = `<td colspan="2" style="text-align:right">ആകെ ടോട്ടൽ:</td><td class="income-text">${tInc}</td><td class="expense-text">${tExp}</td><td style="color:#007bff">${tInc - tExp}</td>`;
+                allData = data;
+                applyFilters(); // ആദ്യ തവണ ലോഡ് ചെയ്യുമ്പോൾ
             });
     }
+
+    function applyFilters() {
+        const from = document.getElementById('fromDate').value;
+        const to = document.getElementById('toDate').value;
+        const type = document.getElementById('typeFilter').value;
+        
+        let filtered = allData;
+
+        // തീയതി ഫിൽറ്റർ (DD-MM-YYYY യെ താരതമ്യം ചെയ്യാൻ പാകത്തിലാക്കുന്നു)
+        if (from || to) {
+            filtered = filtered.filter(item => {
+                let parts = item.date.split("-");
+                let itemDate = new Date(parts[2], parts[1]-1, parts[0]);
+                let fromDate = from ? new Date(from) : new Date(0);
+                let toDate = to ? new Date(to) : new Date();
+                return itemDate >= fromDate && itemDate <= toDate;
+            });
+        }
+
+        // വരവ്/ചിലവ് ഫിൽറ്റർ
+        if (type === 'income') {
+            filtered = filtered.filter(item => parseFloat(item.income) > 0);
+        } else if (type === 'expense') {
+            filtered = filtered.filter(item => parseFloat(item.expense) > 0);
+        }
+
+        displayData(filtered);
+    }
+
+    function displayData(data) {
+        let rows = '';
+        let tInc = 0; let tExp = 0; let bal = 0;
+        
+        data.forEach(item => {
+            let i = parseFloat(item.income) || 0;
+            let e = parseFloat(item.expense) || 0;
+            tInc += i; tExp += e; bal = bal + i - e;
+            rows += `<tr><td>${item.date}</td><td>${item.particulars}</td><td class="income-text">${i}</td><td class="expense-text">${e}</td><td style="font-weight:bold;">${bal}</td></tr>`;
+        });
+        
+        document.getElementById('tableBody').innerHTML = rows;
+        document.getElementById('totalRow').innerHTML = `
+            <td colspan="2" style="text-align:right">ആകെ ടോട്ടൽ:</td>
+            <td class="income-text">${tInc}</td>
+            <td class="expense-text">${tExp}</td>
+            <td style="color:#007bff">${tInc - tExp}</td>`;
+    }
+
     window.onload = loadData;
 </script>
 </body>

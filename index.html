@@ -1,45 +1,80 @@
 <!DOCTYPE html>
-<html>
+<html lang="ml">
 <head>
-    <title>Day Book Entry</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day Book - മദ്രസ കണക്ക്</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f4; }
-        .form-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        h2 { color: #333; text-align: center; }
-        input, select, button { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { background-color: #28a745; color: white; border: none; font-size: 16px; cursor: pointer; }
-        button:hover { background-color: #218838; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #eef2f3; padding: 15px; display: flex; justify-content: center; }
+        .form-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 20px; border-bottom: 2px solid #28a745; padding-bottom: 10px; }
+        label { font-weight: bold; display: block; margin-top: 10px; color: #555; }
+        input { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        input:focus { border-color: #28a745; outline: none; box-shadow: 0 0 5px rgba(40,167,69,0.3); }
+        .btn { background-color: #28a745; color: white; border: none; padding: 15px; width: 100%; border-radius: 6px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.3s; }
+        .btn:hover { background-color: #218838; }
+        .footer-note { text-align: center; font-size: 12px; color: #888; margin-top: 15px; }
     </style>
 </head>
 <body>
 
-<div class="form-container">
+<div class="form-card">
     <h2>Day Book Entry</h2>
     <form id="daybookForm">
-        <input type="date" name="date" required>
-        <input type="text" name="voucher" placeholder="Voucher/Receipt No">
-        <input type="text" name="particulars" placeholder="Particulars (വിവരണം)" required>
-        <input type="number" name="income" placeholder="Income (വരവ്)" value="0">
-        <input type="number" name="expense" placeholder="Expense (ചിലവ്)" value="0">
-        <button type="submit" id="submitBtn">Submit to Sheet</button>
+        <label>തീയതി (Date)</label>
+        <input type="date" name="date" id="todayDate" required>
+
+        <label>വൗച്ചർ നമ്പർ (Voucher No)</label>
+        <input type="text" name="voucher" placeholder="ഉദാ: 101">
+
+        <label>വിവരണം (Particulars)</label>
+        <input type="text" name="particulars" placeholder="എന്തിനുള്ള തുക?" required>
+
+        <label>വരവ് (Income)</label>
+        <input type="number" name="income" value="0">
+
+        <label>ചിലവ് (Expense)</label>
+        <input type="number" name="expense" value="0">
+
+        <label>പാസ്‌വേഡ് (PIN)</label>
+        <input type="password" name="pincode" placeholder="****" required>
+
+        <button type="submit" class="btn" id="submitBtn">ഷീറ്റിലേക്ക് അയക്കുക</button>
     </form>
+    <p class="footer-note">സുരക്ഷിതമായി കണക്കുകൾ സൂക്ഷിക്കാം</p>
 </div>
 
 <script>
+    // ഇന്നത്തെ തീയതി ഓട്ടോമാറ്റിക് ആയി വരാൻ
+    document.getElementById('todayDate').valueAsDate = new Date();
+
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxw36Z8klnBrrYULcPzT1hTLW0_G_kJhCx4QlToRaYkrb6cVizcHVs1r7Zw04j8CUoE/exec';
     const form = document.getElementById('daybookForm');
+    const btn = document.getElementById('submitBtn');
 
     form.addEventListener('submit', e => {
         e.preventDefault();
-        document.getElementById('submitBtn').innerHTML = "Sending...";
+        btn.disabled = true;
+        btn.innerHTML = "അയച്ചുകൊണ്ടിരിക്കുന്നു...";
+
         fetch(scriptURL, { method: 'POST', body: new FormData(form)})
-            .then(response => {
-                alert("വിവരങ്ങൾ ഷീറ്റിലേക്ക് മാറ്റി!");
-                form.reset();
-                document.getElementById('submitBtn').innerHTML = "Submit to Sheet";
+            .then(response => response.text())
+            .then(data => {
+                if(data === "Wrong Password") {
+                    alert("ക്ഷമിക്കണം, പാസ്‌വേഡ് തെറ്റാണ്!");
+                } else {
+                    alert("വിജയകരമായി ഷീറ്റിൽ രേഖപ്പെടുത്തി!");
+                    form.reset();
+                    document.getElementById('todayDate').valueAsDate = new Date();
+                }
+                btn.disabled = false;
+                btn.innerHTML = "ഷീറ്റിലേക്ക് അയക്കുക";
             })
-            .catch(error => alert('Error!', error.message));
+            .catch(error => {
+                alert('എന്തോ തകരാർ സംഭവിച്ചു!', error.message);
+                btn.disabled = false;
+                btn.innerHTML = "വീണ്ടും ശ്രമിക്കുക";
+            });
     });
 </script>
 

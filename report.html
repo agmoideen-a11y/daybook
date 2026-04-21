@@ -14,7 +14,7 @@
         .filter-section label { font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
         .filter-section input, .filter-section select { padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; min-width: 500px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
         th, td { border: 1px solid #dee2e6; padding: 10px; text-align: left; font-size: 14px; }
         th { background-color: #28a745; color: white; font-weight: 600; text-align: center; }
         
@@ -42,24 +42,18 @@
     <h2>മസ്ജിദ് & മദ്രസ ഡേ ബുക്ക് റിപ്പോർട്ട്</h2>
     
     <div class="filter-section">
-        <div>
-            <label>തീയതി മുതൽ:</label>
-            <input type="date" id="fromDate">
-        </div>
-        <div>
-            <label>തീയതി വരെ:</label>
-            <input type="date" id="toDate">
-        </div>
+        <div><label>മുതൽ:</label><input type="date" id="fromDate"></div>
+        <div><label>വരെ:</label><input type="date" id="toDate"></div>
         <div>
             <label>ഫിൽറ്റർ:</label>
             <select id="typeFilter">
-                <option value="all">എല്ലാം (All)</option>
+                <option value="all">എല്ലാം</option>
                 <option value="income">വരവ് മാത്രം</option>
                 <option value="expense">ചിലവ് മാത്രം</option>
             </select>
         </div>
-        <button class="btn filter-btn" onclick="applyFilters()">റിപ്പോർട്ട് കാണുക</button>
-        <button class="btn print-btn" onclick="window.print()">Print എടുക്കുക</button>
+        <button class="btn filter-btn" onclick="applyFilters()">കാണുക</button>
+        <button class="btn print-btn" onclick="window.print()">Print</button>
     </div>
 
     <div style="overflow-x:auto;">
@@ -72,7 +66,7 @@
                     <th class="header-expense">ചിലവ്</th>
                     <th>ബാലൻസ്</th>
                 </tr>
-                </thead>
+            </thead>
             <tbody id="tableBody">
                 <tr><td colspan="5" style="text-align:center;">ഡാറ്റ ലോഡ് ചെയ്യുന്നു...</td></tr>
             </tbody>
@@ -82,10 +76,9 @@
         </table>
     </div>
 </div>
-
 <script>
-    // നിങ്ങൾ തന്ന ഏറ്റവും പുതിയ URL
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbyKYXzQKY0jzy27mJcJt-lEc2KtVzxPrOaBZ0pTU1PvuYhAKj6bS1L1FC8_5OmbdR4d/exec';
+    // നിങ്ങൾ തന്ന പുതിയ URL ഇവിടെ ചേർത്തു
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyf1gnd5pVY_Qpl4_EonRyd--x4rkBLOSHqlmAIa31IY8VD0qI2PuuF5wgvwEOd5FA/exec';
     let allData = [];
 
     function loadData() {
@@ -96,7 +89,7 @@
                 applyFilters(); 
             })
             .catch(err => {
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">ഡാറ്റ ലഭ്യമായില്ല. ഷീറ്റിലെ doGet പരിശോധിക്കുക.</td></tr>';
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">ഡാറ്റ വന്നില്ല. ലിങ്ക് ശരിയാണോ എന്ന് പരിശോധിക്കുക.</td></tr>';
             });
     }
 
@@ -143,7 +136,7 @@
             </tr>;
         });
         
-        document.getElementById('tableBody').innerHTML = rows || '<tr><td colspan="5" style="text-align:center;">വിവരങ്ങൾ ഒന്നുമില്ല.</td></tr>';
+        document.getElementById('tableBody').innerHTML = rows || '<tr><td colspan="5" style="text-align:center;">വിവരങ്ങൾ ലഭ്യമല്ല.</td></tr>';
         document.getElementById('totalRow').innerHTML = 
             <td colspan="2" style="text-align:right">ആകെ ടോട്ടൽ:</td>
             <td class="income-text">${tInc}</td>

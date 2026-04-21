@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Day Book - https://agmoideen-a11y.github.io/daybook/മസ്ജിദ്&മദ്രസ വരവ് ചിലവ്കണക്ക്</title>
+    <title>Day Book Entry</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #eef2f3; padding: 15px; display: flex; justify-content: center; }
         .form-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
@@ -21,10 +21,10 @@
 <div class="form-card">
     <h2>Day Book Entry</h2>
     <form id="daybookForm">
-        <label>തീയതി (Date)</label>
-        <input type="date" name="date" id="todayDate" required>
+        <label>തീയതി (DD-MM-YYYY)</label>
+        <input type="text" name="date" id="todayDate" placeholder="01-03-2026" maxlength="10" required>
 
-        <label>വൗച്ചർ / റസീപ്റ്റ് നമ്പർ (Voucher/Receipt No)</label>
+        <label>വൗച്ചർ / റസീപ്റ്റ് നമ്പർ</label>
         <input type="text" name="voucher" placeholder="ഉദാ: V101 അല്ലെങ്കിൽ R202">
 
         <label>വിവരണം (Particulars)</label>
@@ -36,16 +36,36 @@
         <label>ചിലവ് (Expense)</label>
         <input type="number" name="expense" value="0" onfocus="if(this.value=='0')this.value='';" onblur="if(this.value=='')this.value='0';">
 
-        <label>പാസ്‌വേഡ് (PIN)</label>
-        <input type="password" name="pincode" placeholder="****" required>
-
         <button type="submit" class="btn" id="submitBtn">ഷീറ്റിലേക്ക് അയക്കുക</button>
     </form>
     <p class="footer-note">സുരക്ഷിതമായി കണക്കുകൾ സൂക്ഷിക്കാം</p>
 </div>
 
 <script>
-    document.getElementById('todayDate').valueAsDate = new Date();
+    const dateInput = document.getElementById('todayDate');
+
+    // ഇന്നത്തെ തീയതി തനിയെ സെറ്റ് ചെയ്യാൻ
+    function setTodayDate() {
+        const today = new Date();
+        const dd = String(today.getDate()).padStart(2, '0');
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const yyyy = today.getFullYear();
+        dateInput.value = dd + '-' + mm + '-' + yyyy;
+    }
+    setTodayDate();
+
+    // നമ്പർ ടൈപ്പ് ചെയ്യുമ്പോൾ തനിയെ ഹൈഫൻ (-) വരാൻ
+    dateInput.addEventListener('input', function(e) {
+        let input = e.target.value.replace(/\D/g, ''); // അക്ഷരങ്ങൾ ഒഴിവാക്കുന്നു
+        if (input.length > 8) input = input.substr(0, 8);
+        
+        let formatted = "";
+        if (input.length > 0) formatted += input.substr(0, 2);
+        if (input.length > 2) formatted += '-' + input.substr(2, 2);
+        if (input.length > 4) formatted += '-' + input.substr(4, 4);
+        
+        e.target.value = formatted;
+    });
 
     const scriptURL = 'https://script.google.com/macros/s/AKfycbzUvsNvN4ufjiM8l9I4iRZcMmJp4PvRQAevXnaE7iOsfpxgTXmurUAKF7gmB97J4Siv/exec';
     const form = document.getElementById('daybookForm');
@@ -57,20 +77,15 @@
         btn.innerHTML = "അയച്ചുകൊണ്ടിരിക്കുന്നു...";
 
         fetch(scriptURL, { method: 'POST', body: new FormData(form)})
-            .then(response => response.text())
-            .then(data => {
-                if(data === "Wrong Password") {
-                    alert("ക്ഷമിക്കണം, പാസ്‌വേഡ് തെറ്റാണ്!");
-                } else {
-                    alert("വിജയകരമായി ഷീറ്റിൽ രേഖപ്പെടുത്തി!");
-                    form.reset();
-                    document.getElementById('todayDate').valueAsDate = new Date();
-                }
+        .then(response => {
+                alert("വിജയകരമായി ഷീറ്റിൽ രേഖപ്പെടുത്തി!");
+                form.reset();
+                setTodayDate();
                 btn.disabled = false;
                 btn.innerHTML = "ഷീറ്റിലേക്ക് അയക്കുക";
             })
             .catch(error => {
-                alert('എന്തോ തകരാർ സംഭവിച്ചു!', error.message);
+                alert('എന്തോ തകരാർ സംഭവിച്ചു!');
                 btn.disabled = false;
                 btn.innerHTML = "വീണ്ടും ശ്രമിക്കുക";
             });

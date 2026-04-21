@@ -7,27 +7,53 @@
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 15px; }
         .container { background: white; padding: 20px; border-radius: 12px; max-width: 1000px; margin: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #1a5d1a; border-bottom: 3px solid #28a745; padding-bottom: 10px; margin-bottom: 20px; }
-        .filter-section { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+        h2 { text-align: center; color: #1a5d1a; border-bottom: 3px solid #28a745; padding-bottom: 10px; }
+        
+        .filter-section { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; }
+        .filter-section input, .filter-section select { padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
+        
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #dee2e6; padding: 10px; text-align: left; }
-        th { background-color: #28a745; color: white; text-align: center; }
-        .income-text { color: #28a745; font-weight: bold; text-align: center; }
-        .expense-text { color: #d32f2f; font-weight: bold; text-align: center; }
-        .balance-text { color: #007bff; font-weight: bold; text-align: center; }
-        .total-row { background-color: #e8f5e9 !important; font-weight: bold; }
-        .btn { padding: 10px 15px; border-radius: 5px; cursor: pointer; border: none; font-weight: bold; }
+        th, td { border: 1px solid #dee2e6; padding: 12px; text-align: center; font-size: 14px; }
+        th { background-color: #28a745; color: white; }
+        
+        .income-text { color: #28a745; font-weight: bold; }
+        .expense-text { color: #d32f2f; font-weight: bold; }
+        .balance-text { color: #007bff; font-weight: bold; }
+        .total-row { background-color: #e8f5e9 !important; font-weight: bold; font-size: 16px; }
+
+        .btn { padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; transition: 0.3s; }
+        .filter-btn { background: #2c3e50; }
+        .print-btn { background: #28a745; }
+
+        @media print { .filter-section, .btn { display: none; } }
     </style>
 </head>
 <body>
+
 <div class="container">
-    <h2>മസ്ജിദ് & മദ്രസ വരവ് ചിലവ് കണക്ക്</h2>
+    <h2>മസ്ജിദ് & മദ്രസ വരവ് ചിലവ് റിപ്പോർട്ട്</h2>
+    
     <div class="filter-section">
-        <input type="date" id="fromDate">
-        <input type="date" id="toDate">
-        <button class="btn" style="background:#2c3e50; color:white;" onclick="applyFilters()">കാണുക</button>
-        <button class="btn" style="background:#28a745; color:white;" onclick="window.print()">Print</button>
+        <div>
+            <label style="font-size: 12px;">മുതൽ (DD-MM-YYYY):</label><br>
+            <input type="text" id="fromDate" placeholder="01-04-2026">
+        </div>
+        <div>
+            <label style="font-size: 12px;">വരെ (DD-MM-YYYY):</label><br>
+            <input type="text" id="toDate" placeholder="21-04-2026">
+        </div>
+        <div>
+            <label style="font-size: 12px;">തരം:</label><br>
+            <select id="typeFilter">
+                <option value="all">എല്ലാം (Total)</option>
+                <option value="income">വരവ് മാത്രം</option>
+                <option value="expense">ചിലവ് മാത്രം</option>
+            </select>
+        </div>
+        <button class="btn filter-btn" onclick="applyFilters()">റിപ്പോർട്ട് കാണുക</button>
+        <button class="btn print-btn" onclick="window.print()">Print എടുക്കുക</button>
     </div>
+
     <div style="overflow-x:auto;">
         <table>
             <thead>
@@ -48,10 +74,13 @@
         </table>
     </div>
 </div>
+
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbw-z0psRcjO2QMZPdk_j9cI07lvUcP4GcOeAc1cNQ__LUr7LxcADuJS5Esg12CGUCY4/exec';
+    // നിങ്ങളുടെ പുതിയ വെബ് ആപ്പ് ലിങ്ക് ഇവിടെ നൽകുക
+    const scriptURL = '';
     let allData = [];
 
+    // ഡാറ്റ വായിക്കുന്ന ഫങ്ക്ഷൻ
     function loadData() {
         fetch(scriptURL + "?action=read")
             .then(res => res.json())
@@ -60,34 +89,73 @@
                 displayData(allData);
             })
             .catch(err => {
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">പിശക്! ലിങ്ക് പരിശോധിക്കുക.</td></tr>';
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="5" style="color:red;">ഡാറ്റ ലഭ്യമായില്ല! ലിങ്ക് പരിശോധിക്കുക.</td></tr>';
             });
+    }
+
+    // തീയതി സ്ട്രിംഗിനെ (DD-MM-YYYY) താരതമ്യം ചെയ്യാൻ പാകത്തിൽ മാറ്റുന്നു
+    function parseDate(str) {
+        if(!str) return null;
+        const parts = str.split('-');
+        return new Date(parts[2], parts[1] - 1, parts[0]);
+    }
+
+    function applyFilters() {
+        const fromStr = document.getElementById('fromDate').value;
+        const toStr = document.getElementById('toDate').value;
+        const type = document.getElementById('typeFilter').value;
+
+        let filtered = allData;
+
+        if (fromStr || toStr) {
+            const fromDate = parseDate(fromStr) || new Date(2000, 0, 1);
+            const toDate = parseDate(toStr) || new Date(2100, 0, 1);
+
+            filtered = filtered.filter(item => {
+                const itemDate = parseDate(item.date);
+                return itemDate >= fromDate && itemDate <= toDate;
+            });
+        }
+
+        if (type === 'income') filtered = filtered.filter(item => parseFloat(item.income) > 0);
+        if (type === 'expense') filtered = filtered.filter(item => parseFloat(item.expense) > 0);
+
+        displayData(filtered);
     }
 
     function displayData(data) {
         let rows = '';
-        let tInc = 0; let tExp = 0;
+        let totalIncome = 0;
+        let totalExpense = 0;
+
         data.forEach(item => {
-            let i = parseFloat(item.income) || 0;
-            let e = parseFloat(item.expense) || 0;
-            let b = item.balance || (tInc + i - tExp - e);
-            tInc += i; tExp += e;
-            // ശ്രദ്ധിക്കുക: ഇവിടെ  ഉപയോഗിച്ചിട്ടുണ്ട്
-            rows += <tr>
+            const inc = parseFloat(item.income) || 0;
+            const exp = parseFloat(item.expense) || 0;
+            const bal = item.balance || ""; 
+            
+            totalIncome += inc;
+            totalExpense += exp;
+
+            rows += `<tr>
                 <td>${item.date}</td>
                 <td>${item.particulars}</td>
-                <td class="income-text">${i}</td>
-                <td class="expense-text">${e}</td>
-                <td class="balance-text">${b}</td>
+                <td class="income-text">${inc}</td>
+                <td class="expense-text">${exp}</td>
+                <td class="balance-text">${bal}</td>
             </tr>`;
         });
-        document.getElementById('tableBody').innerHTML = rows || '<tr><td colspan="5" style="text-align:center;">ഡാറ്റയില്ല.</td></tr>';
-    document.getElementById('totalRow').innerHTML = 
-            <td colspan="2" style="text-align:right">ആകെ:</td>
-            <td class="income-text">${tInc}</td>
-            <td class="expense-text">${tExp}</td>
-            <td class="balance-text">${tInc - tExp}</td>;
+
+        document.getElementById('tableBody').innerHTML = rows || '<tr><td colspan="5">ഈ തീയതികളിൽ ഡാറ്റ ലഭ്യമല്ല.</td></tr>';
+        
+        // മൊത്തം കണക്ക് കാണിക്കുന്നു
+        document.getElementById('totalRow').innerHTML = `
+            <td colspan="2" style="text-align:right">ആകെ (Total):</td>
+            <td class="income-text">${totalIncome}</td>
+            <td class="expense-text">${totalExpense}</td>
+            <td class="balance-text">${totalIncome - totalExpense}</td>
+        `;
     }
+
     window.onload = loadData;
 </script>
 </body>

@@ -3,45 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Day Book Report - Advanced</title>
+    <title>Day Book Report - മസ്ജിദ് & മദ്രസ</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f0f2f5; padding: 15px; }
         .container { background: white; padding: 20px; border-radius: 12px; max-width: 1000px; margin: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: #1a5d1a; border-bottom: 3px solid #28a745; padding-bottom: 10px; margin-bottom: 20px; }
         
-        /* സെർച്ച് ബോക്സിന്റെ ഡിസൈൻ */
         .filter-section { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ddd; display: flex; flex-wrap: wrap; gap: 15px; align-items: center; justify-content: center; }
         .filter-section div { display: flex; flex-direction: column; }
         .filter-section label { font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
         .filter-section input, .filter-section select { padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
         
-        /* ടേബിൾ ഡിസൈൻ */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
         th, td { border: 1px solid #dee2e6; padding: 12px; text-align: left; }
         th { background-color: #28a745; color: white; font-weight: 600; text-transform: uppercase; font-size: 13px; }
         tr:nth-child(even) { background-color: #f8f9fa; }
-        tr:hover { background-color: #f1f1f1; }
         
         .total-row { background-color: #e8f5e9 !important; font-weight: bold; font-size: 16px; border-top: 2px solid #28a745; }
         .income-text { color: #28a745; font-weight: bold; }
         .expense-text { color: #d32f2f; font-weight: bold; }
         .balance-text { color: #007bff; font-weight: bold; }
 
-        /* ബട്ടൺ ഡിസൈൻ */
         .btn { padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 14px; margin-top: 15px; }
         .filter-btn { background: #2c3e50; color: white; }
-        .filter-btn:hover { background: #1a252f; }
         .print-btn { background: #28a745; color: white; }
-        .print-btn:hover { background: #218838; }
 
-        @media print { .filter-section, .print-btn { display: none; } body { background: white; padding: 0; } .container { box-shadow: none; max-width: 100%; border: none; } }
-        @media (max-width: 600px) { th, td { padding: 8px; font-size: 12px; } .filter-section { flex-direction: column; align-items: stretch; } }
+        @media print { .filter-section, .print-btn { display: none; } }
+        @media (max-width: 600px) { th, td { padding: 8px; font-size: 12px; } .filter-section { flex-direction: column; } }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>മസ്ജിദ്&മദ്രസ ഡേ ബുക്ക് റിപ്പോർട്ട്</h2>
+    <h2>മസ്ജിദ് & മദ്രസ ഡേ ബുക്ക് റിപ്പോർട്ട്</h2>
     
     <div class="filter-section">
         <div>
@@ -68,10 +62,11 @@
         <table id="reportTable">
             <thead>
                 <tr>
-                    <th class="date-col">തീയതി</th>
-<th class="desc-col">വിവരണം</th>
-<th class="income-col" style="color: #28a745;">വരവ്</th> <th class="expense-col" style="color: #dc3545;">ചിലവ്</th>
-<th class="balance-col">ബാലൻസ്</th>
+                    <th>തീയതി</th>
+                    <th>വിവരണം</th>
+                    <th style="color: #white;">വരവ്</th>
+                    <th style="color: #white;">ചിലവ്</th>
+                    <th>ബാലൻസ്</th>
                 </tr>
             </thead>
             <tbody id="tableBody">
@@ -85,9 +80,9 @@
 </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxw36Z8klnBrrYULcPzT1hTLW0_G_kJhCx4QlToRaYkrb6cVizcHVs1r7Zw04j8CUoE/exec';
+    // നിങ്ങളുടെ ഏറ്റവും പുതിയ Script URL ഇവിടെ ചേർത്തിട്ടുണ്ട്
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzUvsNvN4ufjiM8l9I4iRZcMmJp4PvRQAevXnaE7iOsfpxgTXmurUAKF7gmB97J4Siv/exec';
     let allData = [];
-
     function loadData() {
         fetch(scriptURL + "?action=read")
             .then(res => res.json())
@@ -110,7 +105,6 @@
         if (from || to) {
             filtered = filtered.filter(item => {
                 let parts = item.date.split("-");
-                // DD-MM-YYYY രൂപത്തിലുള്ള തീയതിയെ താരതമ്യത്തിനായി മാറ്റുന്നു
                 let itemDate = new Date(parts[2], parts[1]-1, parts[0]);
                 let fromDate = from ? new Date(from) : new Date(1970,0,1);
                 let toDate = to ? new Date(to) : new Date(2100,0,1);
@@ -129,39 +123,29 @@
 
     function displayData(data) {
         let rows = '';
-        let tInc = 0; let tExp = 0; let bal = 0;
+        let tInc = 0; let tExp = 0; let currentBal = 0;
         
         data.forEach(item => {
             let i = parseFloat(item.income) || 0;
             let e = parseFloat(item.expense) || 0;
             tInc += i; tExp += e; 
-            bal = bal + i - e;
+            currentBal = currentBal + i - e;
 
-            // തീയതി വൃത്തിയാക്കുന്ന ഭാഗം (T00:00... ഒഴിവാക്കാൻ)
-            let cleanDate = String(item.date);
-            if (cleanDate.includes("T")) {
-                let d = new Date(cleanDate);
-                let day = String(d.getDate()).padStart(2, '0');
-                let month = String(d.getMonth() + 1).padStart(2, '0');
-                let year = d.getFullYear();
-                cleanDate = day + "-" + month + "-" + year;
-            }
-
-            rows += `<tr>
-                <td>${cleanDate}</td>
+            rows += <tr>
+                <td>${item.date}</td>
                 <td>${item.particulars}</td>
                 <td class="income-text">${i}</td>
                 <td class="expense-text">${e}</td>
-                <td class="balance-text">${bal}</td>
-            </tr>`;
+                <td class="balance-text">${currentBal}</td>
+            </tr>;
         });
         
-        document.getElementById('tableBody').innerHTML = rows || '<tr><td colspan="5" style="text-align:center;">മാറ്റങ്ങൾ ഒന്നും കണ്ടില്ല.</td></tr>';
-        document.getElementById('totalRow').innerHTML = `
+        document.getElementById('tableBody').innerHTML = rows || '<tr><td colspan="5" style="text-align:center;">വിവരങ്ങൾ ലഭ്യമല്ല.</td></tr>';
+        document.getElementById('totalRow').innerHTML = 
             <td colspan="2" style="text-align:right">ആകെ ടോട്ടൽ:</td>
             <td class="income-text">${tInc}</td>
             <td class="expense-text">${tExp}</td>
-            <td class="balance-text">${tInc - tExp}</td>`;
+            <td class="balance-text">${tInc - tExp}</td>;
     }
 
     window.onload = loadData;

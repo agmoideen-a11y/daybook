@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Day Book Entry</title>
+    <title>മസ്ജിദ് & മദ്രസ വരവ് ചിലവ് കണക്ക്</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #eef2f3; padding: 15px; display: flex; justify-content: center; }
         .form-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-        h2 { text-align: center; color: #2c3e50; margin-bottom: 20px; border-bottom: 2px solid #28a745; padding-bottom: 10px; }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 20px; border-bottom: 2px solid #28a745; padding-bottom: 10px; font-size: 20px; }
         label { font-weight: bold; display: block; margin-top: 10px; color: #555; }
         input { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
         input:focus { border-color: #28a745; outline: none; box-shadow: 0 0 5px rgba(40,167,69,0.3); }
@@ -19,10 +19,11 @@
 <body>
 
 <div class="form-card">
-    <h2>Day Book Entry</h2>
+    <h2>മസ്ജിദ് & മദ്രസ വരവ് ചിലവ് കണക്ക്</h2>
     <form id="daybookForm">
         <label>തീയതി (DD-MM-YYYY)</label>
-        <input type="text" name="date" id="todayDate" placeholder="01-03-2026" maxlength="10" required>
+        <input type="text" name="date" id="todayDate" placeholder="DD-MM-YYYY" maxlength="10" 
+               onfocus="this.value='';" onblur="if(this.value=='') setTodayDate();" required>
 
         <label>വൗച്ചർ / റസീപ്റ്റ് നമ്പർ</label>
         <input type="text" name="voucher" placeholder="ഉദാ: V101 അല്ലെങ്കിൽ R202">
@@ -44,7 +45,7 @@
 <script>
     const dateInput = document.getElementById('todayDate');
 
-    // ഇന്നത്തെ തീയതി തനിയെ സെറ്റ് ചെയ്യാൻ
+    // ഇന്നത്തെ തീയതി സെറ്റ് ചെയ്യാനുള്ള ഫങ്ക്ഷൻ
     function setTodayDate() {
         const today = new Date();
         const dd = String(today.getDate()).padStart(2, '0');
@@ -52,11 +53,13 @@
         const yyyy = today.getFullYear();
         dateInput.value = dd + '-' + mm + '-' + yyyy;
     }
+    
+    // പേജ് ലോഡ് ആകുമ്പോൾ ഇന്നത്തെ തീയതി കാണിക്കും
     setTodayDate();
 
-    // നമ്പർ ടൈപ്പ് ചെയ്യുമ്പോൾ തനിയെ ഹൈഫൻ (-) വരാൻ
+    // ടൈപ്പ് ചെയ്യുമ്പോൾ തനിയെ ഹൈഫൻ (-) വരാൻ
     dateInput.addEventListener('input', function(e) {
-        let input = e.target.value.replace(/\D/g, ''); // അക്ഷരങ്ങൾ ഒഴിവാക്കുന്നു
+        let input = e.target.value.replace(/\D/g, ''); 
         if (input.length > 8) input = input.substr(0, 8);
         
         let formatted = "";
@@ -75,9 +78,8 @@
         e.preventDefault();
         btn.disabled = true;
         btn.innerHTML = "അയച്ചുകൊണ്ടിരിക്കുന്നു...";
-
         fetch(scriptURL, { method: 'POST', body: new FormData(form)})
-        .then(response => {
+            .then(response => {
                 alert("വിജയകരമായി ഷീറ്റിൽ രേഖപ്പെടുത്തി!");
                 form.reset();
                 setTodayDate();

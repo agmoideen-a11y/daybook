@@ -14,13 +14,12 @@
         .filter-section label { font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
         .filter-section input, .filter-section select { padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; min-width: 600px; }
         th, td { border: 1px solid #dee2e6; padding: 10px; text-align: left; font-size: 14px; }
         th { background-color: #28a745; color: white; font-weight: 600; text-align: center; }
         
-        /* ഹെഡറുകൾക്ക് പ്രത്യേക നിറം */
-        .header-income { background-color: #28a745 !important; color: white !important; }
-        .header-expense { background-color: #dc3545 !important; color: white !important; }
+        .header-income { background-color: #28a745 !important; }
+        .header-expense { background-color: #dc3545 !important; }
         
         tr:nth-child(even) { background-color: #f8f9fa; }
         .total-row { background-color: #e8f5e9 !important; font-weight: bold; border-top: 2px solid #28a745; }
@@ -77,8 +76,8 @@
     </div>
 </div>
 <script>
-    // നിങ്ങൾ തന്ന പുതിയ URL ഇവിടെ ചേർത്തു
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbyf1gnd5pVY_Qpl4_EonRyd--x4rkBLOSHqlmAIa31IY8VD0qI2PuuF5wgvwEOd5FA/exec';
+    // നിങ്ങൾ തന്ന ഏറ്റവും പുതിയ ലിങ്ക് ഇവിടെ ചേർത്തു
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyPW-vGoM7MMQS1TZ_G53t-faXLL3P7hITkPWxZgJmb_Fqk3wGUauZY8Z_b8nAK3vtR/exec';
     let allData = [];
 
     function loadData() {
@@ -86,10 +85,10 @@
             .then(res => res.json())
             .then(data => {
                 allData = data;
-                applyFilters(); 
+                displayData(allData); 
             })
             .catch(err => {
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">ഡാറ്റ വന്നില്ല. ലിങ്ക് ശരിയാണോ എന്ന് പരിശോധിക്കുക.</td></tr>';
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">ഡാറ്റ ലഭ്യമായില്ല. ലിങ്ക് ശരിയാണോ എന്ന് പരിശോധിക്കുക.</td></tr>';
             });
     }
 
@@ -109,30 +108,29 @@
             });
         }
 
-        if (type === 'income') {
-            filtered = filtered.filter(item => parseFloat(item.income) > 0);
-        } else if (type === 'expense') {
-            filtered = filtered.filter(item => parseFloat(item.expense) > 0);
-        }
+        if (type === 'income') filtered = filtered.filter(item => parseFloat(item.income) > 0);
+        else if (type === 'expense') filtered = filtered.filter(item => parseFloat(item.expense) > 0);
+        
         displayData(filtered);
     }
 
     function displayData(data) {
         let rows = '';
-        let tInc = 0; let tExp = 0; let bal = 0;
+        let tInc = 0; let tExp = 0;
         
         data.forEach(item => {
             let i = parseFloat(item.income) || 0;
             let e = parseFloat(item.expense) || 0;
+            let b = item.balance || (tInc + i - tExp - e); // ഷീറ്റിലെ ബാലൻസ് അല്ലെങ്കിൽ കണക്കുകൂട്ടി എടുക്കുന്നു
+            
             tInc += i; tExp += e; 
-            bal = bal + i - e;
 
             rows += <tr>
                 <td>${item.date}</td>
                 <td>${item.particulars}</td>
                 <td class="income-text">${i}</td>
                 <td class="expense-text">${e}</td>
-                <td class="balance-text">${bal}</td>
+                <td class="balance-text">${b}</td>
             </tr>;
         });
         

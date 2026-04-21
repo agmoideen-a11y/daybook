@@ -3,28 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Day Book Report - മസ്ജിദ് & മദ്രസ</title>
+    <title>മസ്ജിദ് & മദ്രസ ഡേ ബുക്ക് റിപ്പോർട്ട്</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f0f2f5; padding: 15px; }
         .container { background: white; padding: 20px; border-radius: 12px; max-width: 1000px; margin: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #1a5d1a; border-bottom: 3px solid #28a745; padding-bottom: 10px; margin-bottom: 20px; }
-        .filter-section { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ddd; display: flex; flex-wrap: wrap; gap: 15px; align-items: center; justify-content: center; }
+        h2 { text-align: center; color: #1a5d1a; border-bottom: 3px solid #28a745; padding-bottom: 10px; margin-bottom: 20px; font-size: 20px; }
+        
+        .filter-section { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ddd; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; }
         .filter-section div { display: flex; flex-direction: column; }
         .filter-section label { font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
         .filter-section input, .filter-section select { padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
-        th, td { border: 1px solid #dee2e6; padding: 12px; text-align: left; }
-        th { background-color: #28a745; color: white; font-weight: 600; text-transform: uppercase; font-size: 13px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; min-width: 500px; }
+        th, td { border: 1px solid #dee2e6; padding: 10px; text-align: left; font-size: 14px; }
+        th { background-color: #28a745; color: white; font-weight: 600; }
+        
+        /* കോളം ഹെഡറുകൾക്ക് പ്രത്യേക നിറം */
+        .header-income { background-color: #28a745 !important; color: white !important; text-align: center; }
+        .header-expense { background-color: #dc3545 !important; color: white !important; text-align: center; }
+        
         tr:nth-child(even) { background-color: #f8f9fa; }
-        .total-row { background-color: #e8f5e9 !important; font-weight: bold; font-size: 16px; border-top: 2px solid #28a745; }
-        .income-text { color: #28a745; font-weight: bold; }
-        .expense-text { color: #d32f2f; font-weight: bold; }
-        .balance-text { color: #007bff; font-weight: bold; }
-        .btn { padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 14px; margin-top: 15px; }
+        .total-row { background-color: #e8f5e9 !important; font-weight: bold; border-top: 2px solid #28a745; }
+        .income-text { color: #28a745; font-weight: bold; text-align: center; }
+        .expense-text { color: #d32f2f; font-weight: bold; text-align: center; }
+        .balance-text { color: #007bff; font-weight: bold; text-align: center; }
+
+        .btn { padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s; margin: 5px; }
         .filter-btn { background: #2c3e50; color: white; }
         .print-btn { background: #28a745; color: white; }
+
         @media print { .filter-section, .print-btn { display: none; } }
-        @media (max-width: 600px) { th, td { padding: 8px; font-size: 12px; } .filter-section { flex-direction: column; } }
+        @media (max-width: 600px) { th, td { padding: 6px; font-size: 12px; } .filter-section { flex-direction: column; align-items: stretch; } }
     </style>
 </head>
 <body>
@@ -34,15 +43,15 @@
     
     <div class="filter-section">
         <div>
-            <label>തീയതി മുതൽ (From):</label>
+            <label>തീയതി മുതൽ:</label>
             <input type="date" id="fromDate">
         </div>
         <div>
-            <label>തീയതി വരെ (To):</label>
+            <label>തീയതി വരെ:</label>
             <input type="date" id="toDate">
         </div>
         <div>
-            <label>ഫിൽറ്റർ ചെയ്യുക:</label>
+            <label>ഫിൽറ്റർ:</label>
             <select id="typeFilter">
                 <option value="all">എല്ലാം (All)</option>
                 <option value="income">വരവ് മാത്രം</option>
@@ -59,10 +68,10 @@
                 <tr>
                     <th>തീയതി</th>
                     <th>വിവരണം</th>
-                    <th style="background-color: #28a745; color: white;">വരവ്</th>
-                    <th style="background-color: #dc3545; color: white;">ചിലവ്</th>
+                    <th class="header-income">വരവ്</th>
+                    <th class="header-expense">ചിലവ്</th>
                     <th>ബാലൻസ്</th>
-                </tr>
+                    </tr>
             </thead>
             <tbody id="tableBody">
                 <tr><td colspan="5" style="text-align:center;">ഡാറ്റ ലോഡ് ചെയ്യുന്നു...</td></tr>
@@ -75,8 +84,10 @@
 </div>
 
 <script>
+    // നിങ്ങൾ തന്ന ഏറ്റവും പുതിയ URL
     const scriptURL = 'https://script.google.com/macros/s/AKfycbzi1ilQNpqlc_ONI1UvYz2PiTNIUF4FMn4SSGuYuk8Lecd9-imYT3Nr51UW0SASD1HL/exec';
     let allData = [];
+
     function loadData() {
         fetch(scriptURL + "?action=read")
             .then(res => res.json())
@@ -85,7 +96,7 @@
                 applyFilters(); 
             })
             .catch(err => {
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">ഡാറ്റ ലഭ്യമായില്ല.</td></tr>';
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">ഡാറ്റ ലഭ്യമായില്ല. ഷീറ്റിലെ doGet പരിശോധിക്കുക.</td></tr>';
             });
     }
 
@@ -97,7 +108,8 @@
 
         if (from || to) {
             filtered = filtered.filter(item => {
-                let parts = item.date.split("-");
+                // ഷീറ്റിലെ തീയതി DD-MM-YYYY ആണെങ്കിൽ അത് താരതമ്യത്തിന് അനുയോജ്യമാക്കുന്നു
+                let parts = String(item.date).split("-");
                 let itemDate = new Date(parts[2], parts[1]-1, parts[0]);
                 let fromDate = from ? new Date(from) : new Date(1970,0,1);
                 let toDate = to ? new Date(to) : new Date(2100,0,1);
@@ -115,24 +127,24 @@
 
     function displayData(data) {
         let rows = '';
-        let tInc = 0; let tExp = 0; let currentBal = 0;
+        let tInc = 0; let tExp = 0; let bal = 0;
         
         data.forEach(item => {
             let i = parseFloat(item.income) || 0;
             let e = parseFloat(item.expense) || 0;
             tInc += i; tExp += e; 
-            currentBal = currentBal + i - e;
+            bal = bal + i - e;
 
             rows += <tr>
                 <td>${item.date}</td>
                 <td>${item.particulars}</td>
                 <td class="income-text">${i}</td>
                 <td class="expense-text">${e}</td>
-                <td class="balance-text">${currentBal}</td>
+                <td class="balance-text">${bal}</td>
             </tr>;
         });
         
-        document.getElementById('tableBody').innerHTML = rows || '<tr><td colspan="5" style="text-align:center;">വിവരങ്ങൾ ലഭ്യമല്ല.</td></tr>';
+        document.getElementById('tableBody').innerHTML = rows || '<tr><td colspan="5" style="text-align:center;">വിവരങ്ങൾ ഒന്നുമില്ല.</td></tr>';
         document.getElementById('totalRow').innerHTML = 
             <td colspan="2" style="text-align:right">ആകെ ടോട്ടൽ:</td>
             <td class="income-text">${tInc}</td>

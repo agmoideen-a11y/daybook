@@ -3,160 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>മസ്ജിദ് & മദ്രസ റിപ്പോർട്ട് ബുക്ക്</title>
+    <title>മസ്ജിദ് റിപ്പോർട്ട്</title>
     <style>
-        :root { --primary-green: #1a5d1a; --light-green: #28a745; --bg-gray: #f4f7f6; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg-gray); padding: 15px; margin: 0; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .header { text-align: center; border-bottom: 3px solid var(--light-green); padding-bottom: 10px; margin-bottom: 20px; }
-        
-        .control-panel { background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #ddd; text-align: center; }
-        .filter-row { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; align-items: flex-end; margin-bottom: 15px; }
-        .input-group { display: flex; flex-direction: column; gap: 5px; font-weight: bold; font-size: 13px; }
-        input { padding: 8px; border-radius: 5px; border: 1px solid #ccc; }
-
-        .button-group { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-        .btn { padding: 10px 18px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; transition: 0.3s; }
-        .btn-search { background: #007bff; }
+        :root { --primary: #1a5d1a; --secondary: #28a745; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 10px; margin: 0; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .header { text-align: center; border-bottom: 3px solid var(--secondary); margin-bottom: 15px; }
+        .control-panel { background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 15px; text-align: center; border: 1px solid #ddd; }
+        .btn { padding: 10px 15px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; min-width: 120px; }
         .btn-all { background: #6c757d; }
-        .btn-income { background: #28a745; }
-        .btn-expense { background: #dc3545; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { background: var(--light-green); color: white; padding: 12px; border: 1px solid #ddd; }
-        td { padding: 10px; border: 1px solid #eee; text-align: center; }
-        .income-col { color: green; font-weight: bold; }
-        .expense-col { color: red; font-weight: bold; }
-        .total-row { background: #eee; font-weight: bold; font-size: 16px; }
-
-        @media print {
-            .control-panel, .btn { display: none !important; }
-            body { background: white; padding: 0; }
-            .container { box-shadow: none; border: none; width: 100%; max-width: 100%; }
-            .hide-income .income-col, .hide-income th:nth-child(3), .hide-income .total-inc-cell { display: none; }
-            .hide-expense .expense-col, .hide-expense th:nth-child(4), .hide-expense .total-exp-cell { display: none; }
-        }
+        .btn-inc { background: #28a745; }
+        .btn-exp { background: #dc3545; }
+        .btn-search { background: #007bff; width: 100%; max-width: 200px; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th { background: var(--secondary); color: white; padding: 10px; border: 1px solid #ddd; }
+        td { padding: 8px; border: 1px solid #eee; text-align: center; }
+        .inc-col { color: green; font-weight: bold; }
+        .exp-col { color: red; font-weight: bold; }
+        .loading { text-align: center; padding: 20px; font-weight: bold; color: var(--primary); }
+        @media print { .control-panel, .btn, .search-box { display: none !important; } }
+        .hide-inc .inc-col, .hide-inc th:nth-child(3), .hide-inc .total-inc { display: none; }
+        .hide-exp .exp-col, .hide-exp th:nth-child(4), .hide-exp .total-exp { display: none; }
     </style>
 </head>
 <body>
-
 <div class="container">
-    <div class="header">
-        <h2>വരവ് ചിലവ് റിപ്പോർട്ട്</h2>
-    </div>
-
+    <div class="header"><h2>വരവ് ചിലവ് റിപ്പോർട്ട്</h2></div>
+    
     <div class="control-panel">
-        <div class="filter-row">
-            <div class="input-group">
-                <label>മുതൽ (DD-MM-YYYY):</label>
-                <input type="text" id="fromDate" placeholder="01-01-2026">
-            </div>
-            <div class="input-group">
-                <label>വരെ (DD-MM-YYYY):</label>
-                <input type="text" id="toDate" placeholder="31-12-2026">
+        <div class="search-box">
+            <div style="margin-bottom:10px;">
+                <label>മുതൽ: </label><input type="text" id="fromDate" placeholder="DD-MM-YYYY" style="padding:5px; border-radius:4px; border:1px solid #ccc;">
+                <label> വരെ: </label><input type="text" id="toDate" placeholder="DD-MM-YYYY" style="padding:5px; border-radius:4px; border:1px solid #ccc;">
             </div>
             <button class="btn btn-search" onclick="applyFilters()">കാണുക</button>
         </div>
-        
-        <div class="button-group">
-            <button class="btn btn-all" onclick="printReport('all')">മൊത്തം പ്രിന്റ്</button>
-            <button class="btn btn-income" onclick="printReport('income')">വരവ് മാത്രം പ്രിന്റ്</button>
-            <button class="btn btn-expense" onclick="printReport('expense')">ചിലവ് മാത്രം പ്രിന്റ്</button>
-        </div>
+        <hr style="border:0; border-top:1px solid #ccc; margin:15px 0;">
+        <button class="btn btn-all" onclick="printReport('all')">മൊത്തം പ്രിന്റ്</button>
+        <button class="btn btn-inc" onclick="printReport('inc')">വരവ് മാത്രം</button>
+        <button class="btn btn-exp" onclick="printReport('exp')">ചിലവ് മാത്രം</button>
     </div>
 
-    <table id="myTable">
+    <div id="status" class="loading">വിവരങ്ങൾ ശേഖരിക്കുന്നു...</div>
+
+    <table id="myTable" style="display:none;">
         <thead>
-            <tr>
-                <th>തീയതി</th>
-                <th>വിവരണം</th>
-                <th class="income-col">വരവ്</th>
-                <th class="expense-col">ചിലവ്</th>
-                <th>ബാലൻസ്</th>
-            </tr>
+            <tr><th>തീയതി</th><th>വിവരണം</th><th class="inc-col">വരവ്</th><th class="exp-col">ചിലവ്</th><th>ബാലൻസ്</th></tr>
         </thead>
-        <tbody id="tableBody">
-            <tr><td colspan="5">വിവരങ്ങൾ ശേഖരിക്കുന്നു...</td></tr>
-        </tbody>
-        <tfoot>
-            <tr id="totalRow" class="total-row"></tr>
-        </tfoot>
+        <tbody id="tableBody"></tbody>
+        <tfoot><tr id="totalRow" style="background:#eee; font-weight:bold;"></tr></tfoot>
     </table>
 </div>
+
 <script>
-    // താങ്കൾ നൽകിയ പുതിയ ലിങ്ക്
+    // താഴെ നിങ്ങളുടെ പുതിയ സ്ക്രിപ്റ്റ് ലിങ്ക് നൽകിയിട്ടുണ്ട്
     const scriptURL = 'https://script.google.com/macros/s/AKfycbw5CwyhYRp0qoQVWayYh5QqczKKFFHm2v6QiIhc22U5XKgeWfwxPW4FrzlVmH2BF50K/exec';
+
     let allData = [];
 
-    async function loadData() {
-        try {
-            const response = await fetch(scriptURL + "?action=read");
-            allData = await response.json();
-            applyFilters();
-        } catch (e) {
-            document.getElementById('tableBody').innerHTML = '<tr><td colspan="5">ഡാറ്റ ലഭ്യമായില്ല. ലിങ്ക് പരിശോധിക്കുക.</td></tr>';
-        }
+    function loadData() {
+        fetch(scriptURL + "?action=read")
+            .then(res => res.json())
+            .then(data => {
+                allData = data;
+                document.getElementById('status').style.display = 'none';
+                document.getElementById('myTable').style.display = 'table';
+                applyFilters();
+            })
+            .catch(err => {
+                document.getElementById('status').innerHTML = "വിവരങ്ങൾ ലഭിക്കുന്നതിൽ തടസ്സം നേരിട്ടു. ലിങ്ക് ശരിയാണോ എന്ന് പരിശോധിക്കുക.";
+                console.error(err);
+            });
     }
 
-    // തീയതി ശരിയാക്കാനും ക്രമീകരിക്കാനുമുള്ള ഫങ്ക്ഷൻ
-    function parseDateInfo(dateStr) {
+    function parseDate(dateStr) {
         if (!dateStr) return null;
         let s = dateStr.toString().replace(/\//g, '-');
         let parts = s.split('-');
         if (parts.length !== 3) return null;
-        
         let d = parts[0].padStart(2, '0');
         let m = parts[1].padStart(2, '0');
-        let y = parts[2];
-        if (y.length === 2) y = "20" + y;
-
-        return {
-            display: d + "-" + m + "-" + y,
-            sortValue: new Date(y, m - 1, d).getTime()
-        };
+        let y = parts[2].length === 2 ? "20" + parts[2] : parts[2];
+        return { display: d + "-" + m + "-" + y, sortValue: new Date(y, m - 1, d).getTime() };
     }
 
     function applyFilters() {
-        // തീയതി ക്രമത്തിൽ അടുക്കുന്നു
-        let sorted = [...allData].sort((a, b) => (parseDateInfo(a.date)?.sortValue  0) - (parseDateInfo(b.date)?.sortValue  0));
-        
-        let from = parseDateInfo(document.getElementById('fromDate').value)?.sortValue || 0;
-        let to = parseDateInfo(document.getElementById('toDate').value)?.sortValue || 9999999999999;
+        let from = parseDate(document.getElementById('fromDate').value)?.sortValue || 0;
+        let to = parseDate(document.getElementById('toDate').value)?.sortValue || 9999999999999;
 
+        let sorted = [...allData].sort((a, b) => (parseDate(a.date)?.sortValue  0) - (parseDate(b.date)?.sortValue  0));
         let rows = ''; let tInc = 0; let tExp = 0;
 
         sorted.forEach(item => {
-            let dInfo = parseDateInfo(item.date);
+            let dInfo = parseDate(item.date);
             if (dInfo && dInfo.sortValue >= from && dInfo.sortValue <= to) {
                 let inc = parseFloat(item.income) || 0;
                 let exp = parseFloat(item.expense) || 0;
                 tInc += inc; tExp += exp;
-                rows += <tr>
-                    <td>${dInfo.display}</td>
-                    <td style="text-align:left;">${item.particulars || ''}</td>
-                    <td class="income-col">${inc}</td>
-                    <td class="expense-col">${exp}</td>
-                    <td>${tInc - tExp}</td>
-                </tr>;
+                rows += <tr><td>${dInfo.display}</td><td style="text-align:left;">${item.particulars}</td><td class="inc-col">${inc}</td><td class="exp-col">${exp}</td><td style="font-weight:bold;">${tInc - tExp}</td></tr>;
             }
         });
 
-        document.getElementById('tableBody').innerHTML = rows || '<tr><td colspan="5">ഈ തീയതികളിൽ വിവരങ്ങൾ ലഭ്യമല്ല.</td></tr>';
-        document.getElementById('totalRow').innerHTML = 
-            <td colspan="2">ആകെ (Total)</td>
-            <td class="income-col total-inc-cell">${tInc}</td>
-            <td class="expense-col total-exp-cell">${tExp}</td>
-            <td>${tInc - tExp}</td>
-        ;
+        document.getElementById('tableBody').innerHTML = rows;
+        document.getElementById('totalRow').innerHTML = <td colspan="2">ആകെ</td><td class="total-inc">${tInc}</td><td class="total-exp">${tExp}</td><td>${tInc - tExp}</td>;
     }
 
     function printReport(type) {
-        document.body.classList.remove('hide-income', 'hide-expense');
-        if (type === 'income') document.body.classList.add('hide-expense');
-        if (type === 'expense') document.body.classList.add('hide-income');
+        document.body.classList.remove('hide-inc', 'hide-exp');
+        if(type === 'inc') document.body.classList.add('hide-exp');
+        if(type === 'exp') document.body.classList.add('hide-inc');
         window.print();
     }
-
     window.onload = loadData;
 </script>
 </body>

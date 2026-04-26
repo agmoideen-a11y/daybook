@@ -3,157 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>മസ്ജിദ് & മദ്രസ റിപ്പോർട്ട്</title>
+    <title>മസ്ജിദ് & മദ്രസ ഡേ ബുക്ക്</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 15px; }
-        .container { background: white; padding: 20px; border-radius: 12px; max-width: 1000px; margin: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #1a5d1a; border-bottom: 3px solid #28a745; padding-bottom: 10px; }
-        
-        .filter-section { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; }
-        .filter-section input, .filter-section select { padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
-        
+        :root { --primary-green: #1a5d1a; --light-green: #28a745; --bg-gray: #f4f7f6; }
+        body { font-family: sans-serif; background-color: var(--bg-gray); padding: 15px; margin: 0; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .header { text-align: center; border-bottom: 3px solid var(--light-green); padding-bottom: 10px; margin-bottom: 20px; }
+        .search-card { background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: flex-end; border: 1px solid #ddd; }
+        .input-group { display: flex; flex-direction: column; font-size: 13px; font-weight: bold; }
+        input, select { padding: 8px; border-radius: 5px; border: 1px solid #ccc; margin-top: 5px; }
+        .btn { padding: 9px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; }
+        .btn-search { background: var(--primary-green); }
+        .btn-print { background: var(--light-green); }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #dee2e6; padding: 12px; text-align: center; font-size: 14px; }
-        th { background-color: #28a745; color: white; }
-        
-        .income-text { color: #28a745; font-weight: bold; }
-        .expense-text { color: #d32f2f; font-weight: bold; }
-        .balance-text { color: #007bff; font-weight: bold; }
-        .total-row { background-color: #e8f5e9 !important; font-weight: bold; font-size: 16px; }
-
-        .btn { padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; transition: 0.3s; }
-        .filter-btn { background: #2c3e50; }
-        .print-btn { background: #28a745; }
-
-        @media print { .filter-section, .btn { display: none; } }
+        th { background: var(--light-green); color: white; padding: 10px; border: 1px solid #ddd; }
+        td { padding: 10px; border: 1px solid #eee; text-align: center; }
+        .income-amt { color: green; font-weight: bold; }
+        .expense-amt { color: red; font-weight: bold; }
+        @media print { .search-card, .btn { display: none; } }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>മസ്ജിദ് & മദ്രസ വരവ് ചിലവ് റിപ്പോർട്ട്</h2>
-    
-    <div class="filter-section">
-        <div>
-            <label style="font-size: 12px;">മുതൽ (DD-MM-YYYY):</label><br>
-            <input type="text" id="fromDate" placeholder="01-04-2026">
-        </div>
-        <div>
-            <label style="font-size: 12px;">വരെ (DD-MM-YYYY):</label><br>
-            <input type="text" id="toDate" placeholder="21-04-2026">
-        </div>
-        <div>
-            <label style="font-size: 12px;">തരം:</label><br>
-            <select id="typeFilter">
-                <option value="all">എല്ലാം (Total)</option>
-                <option value="income">വരവ് മാത്രം</option>
-                <option value="expense">ചിലവ് മാത്രം</option>
-            </select>
-        </div>
-        <button class="btn filter-btn" onclick="applyFilters()">റിപ്പോർട്ട് കാണുക</button>
-        <button class="btn print-btn" onclick="window.print()">Print എടുക്കുക</button>
+    <div class="header"><h2>വരവ് ചിലവ് റിപ്പോർട്ട്</h2></div>
+
+    <div class="search-card">
+        <div class="input-group"><label>മുതൽ:</label><input type="text" id="fromDate" placeholder="DD-MM-YYYY"></div>
+        <div class="input-group"><label>വരെ:</label><input type="text" id="toDate" placeholder="DD-MM-YYYY"></div>
+        <button class="btn btn-search" onclick="applyFilters()">കാണുക</button>
+        <button class="btn btn-print" onclick="window.print()">Print</button>
     </div>
 
-    <div style="overflow-x:auto;">
-        <table>
-            <thead>
-                <tr>
-                    <th>തീയതി</th>
-                    <th>വിവരണം</th>
-                    <th>വരവ്</th>
-                    <th>ചിലവ്</th>
-                    <th>ബാലൻസ്</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody">
-                <tr><td colspan="5" style="text-align:center;">ഡാറ്റ ലോഡ് ചെയ്യുന്നു...</td></tr>
-            </tbody>
-            <tfoot>
-                <tr id="totalRow" class="total-row"></tr>
-            </tfoot>
-        </table>
-    </div>
+    <table id="myTable">
+        <thead>
+            <tr><th>തീയതി</th><th>വിവരണം</th><th>വരവ്</th><th>ചിലവ്</th><th>ബാലൻസ്</th></tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+        <tfoot><tr id="totalRow" style="background:#eee; font-weight:bold;"></tr></tfoot>
+    </table>
 </div>
 
 <script>
-    // നിങ്ങളുടെ പുതിയ വെബ് ആപ്പ് ലിങ്ക് ഇവിടെ നൽകുക
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbw-z0psRcjO2QMZPdk_j9cI07lvUcP4GcOeAc1cNQ__LUr7LxcADuJS5Esg12CGUCY4/exec';
+    // താഴെ നിങ്ങളുടെ പുതിയ ലിങ്ക് പേസ്റ്റ് ചെയ്യുക
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzMyz3B7vYSUOVP2xYeIQLo3TuKIzmgmhVkn4RuU06nJSfb3gRf_jRB7uv4G4EJ9pfU/exec';
+
     let allData = [];
 
-    // ഡാറ്റ വായിക്കുന്ന ഫങ്ക്ഷൻ
     function loadData() {
         fetch(scriptURL + "?action=read")
             .then(res => res.json())
             .then(data => {
                 allData = data;
-                displayData(allData);
-            })
-            .catch(err => {
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="5" style="color:red;">ഡാറ്റ ലഭ്യമായില്ല! ലിങ്ക് പരിശോധിക്കുക.</td></tr>';
+                applyFilters();
             });
     }
 
-    // തീയതി സ്ട്രിംഗിനെ (DD-MM-YYYY) താരതമ്യം ചെയ്യാൻ പാകത്തിൽ മാറ്റുന്നു
-    function parseDate(str) {
-        if(!str) return null;
-        const parts = str.split('-');
-        return new Date(parts[2], parts[1] - 1, parts[0]);
+    // തീയതി ശരിയാക്കാനുള്ള ഫങ്ക്ഷൻ
+    function fixDate(dateStr) {
+        if (!dateStr) return null;
+        let cleanDate = dateStr.toString().replace(/\//g, '-');
+        let parts = cleanDate.split('-');
+        if (parts.length !== 3) return null;
+        
+        let d = parts[0].padStart(2, '0');
+        let m = parts[1].padStart(2, '0');
+        let y = parts[2];
+        if (y.length === 2) y = "20" + y;
+
+        return {
+            display: d + "-" + m + "-" + y,
+            sortValue: new Date(y, m - 1, d).getTime()
+        };
     }
 
     function applyFilters() {
-        const fromStr = document.getElementById('fromDate').value;
-        const toStr = document.getElementById('toDate').value;
-        const type = document.getElementById('typeFilter').value;
-
-        let filtered = allData;
-
-        if (fromStr || toStr) {
-            const fromDate = parseDate(fromStr) || new Date(2000, 0, 1);
-            const toDate = parseDate(toStr) || new Date(2100, 0, 1);
-
-            filtered = filtered.filter(item => {
-                const itemDate = parseDate(item.date);
-                return itemDate >= fromDate && itemDate <= toDate;
-            });
-        }
-
-        if (type === 'income') filtered = filtered.filter(item => parseFloat(item.income) > 0);
-        if (type === 'expense') filtered = filtered.filter(item => parseFloat(item.expense) > 0);
-
-        displayData(filtered);
-    }
-
-    function displayData(data) {
-        let rows = '';
-        let totalIncome = 0;
-        let totalExpense = 0;
-
-        data.forEach(item => {
-            const inc = parseFloat(item.income) || 0;
-            const exp = parseFloat(item.expense) || 0;
-            const bal = item.balance || ""; 
-            
-            totalIncome += inc;
-            totalExpense += exp;
-
-            rows += `<tr>
-                <td>${item.date}</td>
-                <td>${item.particulars}</td>
-                <td class="income-text">${inc}</td>
-                <td class="expense-text">${exp}</td>
-                <td class="balance-text">${bal}</td>
-            </tr>`;
+        let sorted = [...allData].sort((a, b) => (fixDate(a.date)?.sortValue  0) - (fixDate(b.date)?.sortValue  0));
+        
+        let from = fixDate(document.getElementById('fromDate').value)?.sortValue || 0;
+        let to = fixDate(document.getElementById('toDate').value)?.sortValue || 9999999999999;
+        let rows = ''; let tInc = 0; let tExp = 0;
+        
+        sorted.forEach(item => {
+            let dInfo = fixDate(item.date);
+            if (dInfo && dInfo.sortValue >= from && dInfo.sortValue <= to) {
+                let inc = parseFloat(item.income) || 0;
+                let exp = parseFloat(item.expense) || 0;
+                tInc += inc; tExp += exp;
+                rows += <tr>
+                    <td>${dInfo.display}</td>
+                    <td>${item.particulars}</td>
+                    <td class="income-amt">${inc}</td>
+                    <td class="expense-amt">${exp}</td>
+                    <td>${tInc - tExp}</td>
+                </tr>;
+            }
         });
 
-        document.getElementById('tableBody').innerHTML = rows || '<tr><td colspan="5">ഈ തീയതികളിൽ ഡാറ്റ ലഭ്യമല്ല.</td></tr>';
-        
-        // മൊത്തം കണക്ക് കാണിക്കുന്നു
-        document.getElementById('totalRow').innerHTML = `
-            <td colspan="2" style="text-align:right">ആകെ (Total):</td>
-            <td class="income-text">${totalIncome}</td>
-            <td class="expense-text">${totalExpense}</td>
-            <td class="balance-text">${totalIncome - totalExpense}</td>
-        `;
+        document.getElementById('tableBody').innerHTML = rows;
+        document.getElementById('totalRow').innerHTML = <td colspan="2">ആകെ</td><td>${tInc}</td><td>${tExp}</td><td>${tInc - tExp}</td>;
     }
 
     window.onload = loadData;

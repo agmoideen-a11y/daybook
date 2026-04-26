@@ -3,69 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>മസ്ജിദ് & മദ്രസ എൻട്രി ഫോം</title>
+    <title>മസ്ജിദ് എൻട്രി ഫോം</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; padding: 20px; }
-        .form-container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
-        h2 { text-align: center; color: #2c3e50; border-bottom: 2px solid #27ae60; padding-bottom: 10px; }
-        label { display: block; margin-top: 15px; font-weight: bold; color: #34495e; }
-        input { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 15px; background-color: #27ae60; color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 25px; transition: 0.3s; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; }
+        .form-container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); max-width: 450px; margin: auto; }
+        h2 { text-align: center; color: #1a5d1a; border-bottom: 2px solid #28a745; padding-bottom: 10px; }
+        label { display: block; margin-top: 15px; font-weight: bold; }
+        input { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: #28a745; color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; }
     </style>
 </head>
 <body>
 <div class="form-container">
-    <h2>മസ്ജിദ് & മദ്രസ വരവ് ചിലവ് കണക്ക്</h2>
+    <h2>വരവ് ചിലവ് എൻട്രി</h2>
     <form id="entryForm">
         <label>തീയതി (DD-MM-YYYY)</label>
         <input type="text" id="date" placeholder="ഉദാ: 21-04-2026" required>
-        <label>വൗച്ചർ/റസീപ്റ്റ് നമ്പർ</label>
-        <input type="text" id="voucher" placeholder="V101/R201">
+        <label>വൗച്ചർ നമ്പർ</label>
+        <input type="text" id="voucher">
         <label>വിവരണം</label>
         <input type="text" id="particulars" required>
-        
         <label>വരവ് (Income)</label>
-        <input type="number" id="income" placeholder="0">
-        
+        <input type="number" id="income" value="0">
         <label>ചിലവ് (Expense)</label>
-        <input type="number" id="expense" placeholder="0">
-        
-        <button type="submit" id="submitBtn">ഷീറ്റിലേക്ക് അയക്കുക</button>
+        <input type="number" id="expense" value="0">
+        <button type="submit" id="submitBtn">സേവ് ചെയ്യുക</button>
     </form>
 </div>
-
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbw5CwyhYRp0qoQVWayYh5QqczKKFFHm2v6QiIhc22U5XKgeWfwxPW4FrzlVmH2BF50K/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyn9Fq2Eu6K5-xCC1-zMRXIzRga_tvfYSOOuvikYfgQHBfHgsJCFYOALMmbXDakNHzv/exec';
     const form = document.getElementById('entryForm');
     const btn = document.getElementById('submitBtn');
 
     form.addEventListener('submit', e => {
         e.preventDefault();
         btn.disabled = true;
-        btn.innerText = "അയച്ചുകൊണ്ടിരിക്കുന്നു...";
-
-        // വാല്യൂ ഇല്ലെങ്കിൽ 0 ആയി എടുക്കാൻ || 0 ചേർത്തു
-        let incomeVal = document.getElementById('income').value || 0;
-        let expenseVal = document.getElementById('expense').value || 0;
-
-        let finalURL = scriptURL + "?" + 
-            "date=" + encodeURIComponent(document.getElementById('date').value) +
+        btn.innerText = "അയക്കുന്നു...";
+        let finalURL = scriptURL + "?date=" + encodeURIComponent(document.getElementById('date').value) +
             "&voucher=" + encodeURIComponent(document.getElementById('voucher').value) +
             "&particulars=" + encodeURIComponent(document.getElementById('particulars').value) +
-            "&income=" + encodeURIComponent(incomeVal) +
-            "&expense=" + encodeURIComponent(expenseVal);
+            "&income=" + encodeURIComponent(document.getElementById('income').value) +
+            "&expense=" + encodeURIComponent(document.getElementById('expense').value);
 
-        fetch(finalURL, { method: 'POST' })
-            .then(response => {
-                alert("വിവരങ്ങൾ ഷീറ്റിൽ ചേർത്തു!");
-                form.reset();
-                btn.disabled = false;
-                btn.innerText = "ഷീറ്റിലേക്ക് അയക്കുക";
-            })
-            .catch(error => {
-                alert("പിശക് സംഭവിച്ചു!");
-                btn.disabled = false;
-            });
+        fetch(finalURL, { method: 'POST', mode: 'no-cors' })
+        .then(() => {
+            alert("സേവ് ചെയ്തു!");
+            form.reset();
+            btn.disabled = false;
+            btn.innerText = "സേവ് ചെയ്യുക";
+        }).catch(() => {
+            alert("Error!");
+            btn.disabled = false;
+        });
     });
 </script>
 </body>

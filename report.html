@@ -3,92 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>മസ്ജിദ് റിപ്പോർട്ട്</title>
+    <title>മസ്ജിദ് റിപ്പോർട്ട് ബുക്ക്</title>
     <style>
         :root { --primary: #1a5d1a; --secondary: #28a745; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 15px; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background: var(--secondary); color: white; padding: 12px; border: 1px solid #ddd; }
-        td { padding: 10px; border: 1px solid #eee; text-align: center; }
-        .inc-col { color: green; font-weight: bold; }
-        .exp-col { color: red; font-weight: bold; }
-        .control-panel { background: #eee; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; }
-        .btn { padding: 10px 15px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; background: #007bff; }
-        @media print { .control-panel, .btn, input { display: none !important; } }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; padding: 20px; }
+        .container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .header { text-align: center; border-bottom: 4px solid var(--secondary); margin-bottom: 25px; padding-bottom: 10px; }
+        .control-panel { background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 25px; border: 1px solid #dee2e6; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; align-items: center; }
+        .btn { padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; transition: 0.3s; }
+        .btn-print { background: #6c757d; }
+        .btn-view { background: #007bff; }
+        input { padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { background: var(--secondary); color: white; padding: 15px; border: 1px solid #ddd; font-size: 16px; }
+        td { padding: 12px; border: 1px solid #eee; text-align: center; font-size: 15px; }
+        .income-text { color: #28a745; font-weight: bold; }
+        .expense-text { color: #dc3545; font-weight: bold; }
+        .total-row { background: #f1f1f1; font-weight: bold; font-size: 17px; }
+        #loadingMsg { text-align: center; font-size: 18px; font-weight: bold; color: var(--primary); padding: 20px; }
+        @media print { .control-panel, .btn { display: none !important; } body { padding: 0; background: white; } .container { box-shadow: none; width: 100%; } }
     </style>
 </head>
 <body>
 <div class="container">
-    <div style="text-align:center;"><h2>വരവ് ചിലവ് റിപ്പോർട്ട്</h2></div>
-    
+    <div class="header"><h1>വരവ് ചിലവ് റിപ്പോർട്ട്</h1></div>
     <div class="control-panel">
-        <input type="text" id="fromDate" placeholder="DD-MM-YYYY (മുതൽ)" style="padding:8px;">
-        <input type="text" id="toDate" placeholder="DD-MM-YYYY (വരെ)" style="padding:8px;">
-        <button class="btn" onclick="applyFilters()">കാണുക</button>
-        <button class="btn" style="background:#6c757d" onclick="window.print()">പ്രിന്റ്</button>
+        <label>മുതൽ:</label> <input type="text" id="fromDate" placeholder="DD-MM-YYYY">
+        <label>വരെ:</label> <input type="text" id="toDate" placeholder="DD-MM-YYYY">
+        <button class="btn btn-view" onclick="applyFilters()">റിപ്പോർട്ട് കാണുക</button>
+        <button class="btn btn-print" onclick="window.print()">പ്രിന്റ് എടുക്കുക</button>
     </div>
-
-    <div id="msg" style="text-align:center; font-weight:bold;">വിവരങ്ങൾ ലോഡ് ചെയ്യുന്നു...</div>
-
-    <table id="myTable" style="display:none;">
+    <div id="loadingMsg">വിവരങ്ങൾ ശേഖരിക്കുന്നു... ദയവായി കാത്തിരിക്കുക.</div>
+    <table id="reportTable" style="display:none;">
         <thead>
-            <tr><th>തീയതി</th><th>വിവരണം</th><th class="inc-col">വരവ്</th><th class="exp-col">ചിലവ്</th><th>ബാലൻസ്</th></tr>
+            <tr>
+                <th>തീയതി</th>
+                <th>വിവരണം</th>
+                <th>വരവ്</th>
+                <th>ചിലവ്</th>
+                <th>ബാക്കി</th>
+            </tr>
         </thead>
         <tbody id="tableBody"></tbody>
-        <tfoot><tr id="totalRow" style="background:#eee; font-weight:bold;"></tr></tfoot>
+        <tfoot>
+            <tr id="totalRow" class="total-row"></tr>
+        </tfoot>
     </table>
 </div>
 
 <script>
-    // ചിത്രത്തിൽ കണ്ട പുതിയ ലിങ്ക് ആണിത്
     const scriptURL = 'https://script.google.com/macros/s/AKfycbyn9Fq2Eu6K5-xCC1-zMRXIzRga_tvfYSOOuvikYfgQHBfHgsJCFYOALMmbXDakNHzv/exec';
-
     let allData = [];
 
     async function loadData() {
         try {
-            const res = await fetch(scriptURL + "?action=read");
-            allData = await res.json();
-            document.getElementById('msg').style.display = 'none';
-            document.getElementById('myTable').style.display = 'table';
+            const response = await fetch(scriptURL + "?action=read");
+            allData = await response.json();
+            document.getElementById('loadingMsg').style.display = 'none';
+            document.getElementById('reportTable').style.display = 'table';
             applyFilters();
-        } catch (err) {
-            document.getElementById('msg').innerHTML = "ഡാറ്റ ലഭിക്കുന്നില്ല. ഷീറ്റിൽ എൻട്രികൾ ഉണ്ടെന്ന് ഉറപ്പുവരുത്തുക.";
+        } catch (error) {
+            document.getElementById('loadingMsg').innerHTML = "വിവരങ്ങൾ ലഭിച്ചില്ല! Apps Script ലിങ്ക് ശരിയാണോ എന്ന് പരിശോധിക്കുക.";
         }
     }
 
-    function parseDate(dateStr) {
-        if (!dateStr) return null;
-        let s = dateStr.toString().replace(/\//g, '-');
-        let parts = s.split('-');
-        if (parts.length !== 3) return null;
-        let d = parts[0].padStart(2, '0');
-        let m = parts[1].padStart(2, '0');
-        let y = parts[2].length === 2 ? "20" + parts[2] : parts[2];
-        return { display: d + "-" + m + "-" + y, sortValue: new Date(y, m - 1, d).getTime() };
+    function parseDate(dStr) {
+        if (!dStr) return null;
+        let s = dStr.toString().replace(/\//g, '-');
+        let p = s.split('-');
+        if (p.length !== 3) return null;
+        let day = p[0].padStart(2, '0');
+        let month = p[1].padStart(2, '0');
+        let year = p[2].length === 2 ? "20" + p[2] : p[2];
+        return { display: day + "-" + month + "-" + year, sortVal: new Date(year, month - 1, day).getTime() };
     }
-
     function applyFilters() {
-        let from = parseDate(document.getElementById('fromDate').value)?.sortValue || 0;
-        let to = parseDate(document.getElementById('toDate').value)?.sortValue || 9999999999999;
+        let fromDate = parseDate(document.getElementById('fromDate').value)?.sortVal || 0;
+        let toDate = parseDate(document.getElementById('toDate').value)?.sortVal || 9999999999999;
         
-        let sorted = [...allData].sort((a, b) => (parseDate(a.date)?.sortValue  0) - (parseDate(b.date)?.sortValue  0));
+        let sortedData = [...allData].sort((a, b) => (parseDate(a.date)?.sortVal  0) - (parseDate(b.date)?.sortVal  0));
         
-        let rows = ''; let tInc = 0; let tExp = 0;
-        sorted.forEach(item => {
+        let rows = ''; let totalInc = 0; let totalExp = 0;
+        sortedData.forEach(item => {
             let dInfo = parseDate(item.date);
-            if (dInfo && dInfo.sortValue >= from && dInfo.sortValue <= to) {
+            if (dInfo && dInfo.sortVal >= fromDate && dInfo.sortVal <= toDate) {
                 let inc = parseFloat(item.income) || 0;
                 let exp = parseFloat(item.expense) || 0;
-                tInc += inc; tExp += exp;
-                rows += <tr><td>${dInfo.display}</td><td style="text-align:left;">${item.particulars}</td><td class="inc-col">${inc}</td><td class="exp-col">${exp}</td><td>${tInc - tExp}</td></tr>;
+                totalInc += inc; totalExp += exp;
+                rows += <tr>
+                    <td>${dInfo.display}</td>
+                    <td style="text-align:left;">${item.particulars}</td>
+                    <td class="income-text">${inc.toFixed(2)}</td>
+                    <td class="expense-text">${exp.toFixed(2)}</td>
+                    <td style="font-weight:bold;">${(totalInc - totalExp).toFixed(2)}</td>
+                </tr>;
             }
         });
         document.getElementById('tableBody').innerHTML = rows;
-        document.getElementById('totalRow').innerHTML = <td colspan="2">ആകെ</td><td class="inc-col">${tInc}</td><td class="exp-col">${tExp}</td><td>${tInc - tExp}</td>;
+        document.getElementById('totalRow').innerHTML = <td colspan="2">ആകെ</td><td>${totalInc.toFixed(2)}</td><td>${totalExp.toFixed(2)}</td><td>${(totalInc - totalExp).toFixed(2)}</td>;
     }
-
     window.onload = loadData;
 </script>
 </body>

@@ -3,46 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>മസ്ജിദ് റിപ്പോർട്ട് ബുക്ക്</title>
+    <title>മസ്ജിദ് റിപ്പോർട്ട്</title>
     <style>
         :root { --primary: #1a5d1a; --secondary: #28a745; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 10px; margin: 0; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .header { text-align: center; border-bottom: 3px solid var(--secondary); margin-bottom: 15px; }
-        .control-panel { background: #eee; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; border: 1px solid #ddd; }
-        .btn { padding: 10px 15px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; }
-        .btn-all { background: #6c757d; }
-        .btn-inc { background: #28a745; }
-        .btn-exp { background: #dc3545; }
-        .btn-search { background: #007bff; }
-        input { padding: 8px; border-radius: 5px; border: 1px solid #ccc; margin: 5px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 15px; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th { background: var(--secondary); color: white; padding: 12px; border: 1px solid #ddd; }
         td { padding: 10px; border: 1px solid #eee; text-align: center; }
         .inc-col { color: green; font-weight: bold; }
         .exp-col { color: red; font-weight: bold; }
-        @media print { 
-            .control-panel, .btn { display: none !important; } 
-            .hide-inc .inc-col, .hide-inc th:nth-child(3) { display: none; }
-            .hide-exp .exp-col, .hide-exp th:nth-child(4) { display: none; }
-        }
+        .control-panel { background: #eee; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; }
+        .btn { padding: 10px 15px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; background: #007bff; }
+        @media print { .control-panel, .btn, input { display: none !important; } }
     </style>
 </head>
-<body id="mainBody">
+<body>
 <div class="container">
-    <div class="header"><h2>വരവ് ചിലവ് റിപ്പോർട്ട്</h2></div>
+    <div style="text-align:center;"><h2>വരവ് ചിലവ് റിപ്പോർട്ട്</h2></div>
+    
     <div class="control-panel">
-        <div>
-            <input type="text" id="fromDate" placeholder="DD-MM-YYYY (മുതൽ)">
-            <input type="text" id="toDate" placeholder="DD-MM-YYYY (വരെ)">
-            <button class="btn btn-search" onclick="applyFilters()">കാണുക</button>
-        </div>
-        <hr style="margin:15px 0; border:0; border-top:1px solid #ccc;">
-        <button class="btn btn-all" onclick="printReport('all')">മൊത്തം പ്രിന്റ്</button>
-        <button class="btn btn-inc" onclick="printReport('inc')">വരവ് മാത്രം</button>
-        <button class="btn btn-exp" onclick="printReport('exp')">ചിലവ് മാത്രം</button>
+        <input type="text" id="fromDate" placeholder="DD-MM-YYYY (മുതൽ)" style="padding:8px;">
+        <input type="text" id="toDate" placeholder="DD-MM-YYYY (വരെ)" style="padding:8px;">
+        <button class="btn" onclick="applyFilters()">കാണുക</button>
+        <button class="btn" style="background:#6c757d" onclick="window.print()">പ്രിന്റ്</button>
     </div>
-    <div id="loading" style="text-align:center; font-weight:bold;">വിവരങ്ങൾ ശേഖരിക്കുന്നു...</div>
+
+    <div id="msg" style="text-align:center; font-weight:bold;">വിവരങ്ങൾ ലോഡ് ചെയ്യുന്നു...</div>
+
     <table id="myTable" style="display:none;">
         <thead>
             <tr><th>തീയതി</th><th>വിവരണം</th><th class="inc-col">വരവ്</th><th class="exp-col">ചിലവ്</th><th>ബാലൻസ്</th></tr>
@@ -51,19 +39,25 @@
         <tfoot><tr id="totalRow" style="background:#eee; font-weight:bold;"></tr></tfoot>
     </table>
 </div>
+
 <script>
+    // ചിത്രത്തിൽ കണ്ട പുതിയ ലിങ്ക് ആണിത്
     const scriptURL = 'https://script.google.com/macros/s/AKfycbyn9Fq2Eu6K5-xCC1-zMRXIzRga_tvfYSOOuvikYfgQHBfHgsJCFYOALMmbXDakNHzv/exec';
+
     let allData = [];
-    function loadData() {
-        fetch(scriptURL + "?action=read")
-            .then(res => res.json())
-            .then(data => {
-                allData = data;
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('myTable').style.display = 'table';
-                applyFilters();
-            }).catch(err => console.log(err));
+
+    async function loadData() {
+        try {
+            const res = await fetch(scriptURL + "?action=read");
+            allData = await res.json();
+            document.getElementById('msg').style.display = 'none';
+            document.getElementById('myTable').style.display = 'table';
+            applyFilters();
+        } catch (err) {
+            document.getElementById('msg').innerHTML = "ഡാറ്റ ലഭിക്കുന്നില്ല. ഷീറ്റിൽ എൻട്രികൾ ഉണ്ടെന്ന് ഉറപ്പുവരുത്തുക.";
+        }
     }
+
     function parseDate(dateStr) {
         if (!dateStr) return null;
         let s = dateStr.toString().replace(/\//g, '-');
@@ -74,10 +68,13 @@
         let y = parts[2].length === 2 ? "20" + parts[2] : parts[2];
         return { display: d + "-" + m + "-" + y, sortValue: new Date(y, m - 1, d).getTime() };
     }
+
     function applyFilters() {
         let from = parseDate(document.getElementById('fromDate').value)?.sortValue || 0;
         let to = parseDate(document.getElementById('toDate').value)?.sortValue || 9999999999999;
+        
         let sorted = [...allData].sort((a, b) => (parseDate(a.date)?.sortValue  0) - (parseDate(b.date)?.sortValue  0));
+        
         let rows = ''; let tInc = 0; let tExp = 0;
         sorted.forEach(item => {
             let dInfo = parseDate(item.date);
@@ -85,18 +82,13 @@
                 let inc = parseFloat(item.income) || 0;
                 let exp = parseFloat(item.expense) || 0;
                 tInc += inc; tExp += exp;
-                rows += <tr><td>${dInfo.display}</td><td style="text-align:left;">${item.particulars}</td><td class="inc-col">${inc}</td><td class="exp-col">${exp}</td><td style="font-weight:bold;">${tInc - tExp}</td></tr>;
+                rows += <tr><td>${dInfo.display}</td><td style="text-align:left;">${item.particulars}</td><td class="inc-col">${inc}</td><td class="exp-col">${exp}</td><td>${tInc - tExp}</td></tr>;
             }
         });
         document.getElementById('tableBody').innerHTML = rows;
         document.getElementById('totalRow').innerHTML = <td colspan="2">ആകെ</td><td class="inc-col">${tInc}</td><td class="exp-col">${tExp}</td><td>${tInc - tExp}</td>;
     }
-    function printReport(type) {
-        document.body.classList.remove('hide-inc', 'hide-exp');
-        if(type === 'inc') document.body.classList.add('hide-exp');
-        if(type === 'exp') document.body.classList.add('hide-inc');
-        window.print();
-    }
+
     window.onload = loadData;
 </script>
 </body>

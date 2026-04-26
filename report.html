@@ -6,7 +6,7 @@
     <title>മസ്ജിദ് റിപ്പോർട്ട് ബുക്ക്</title>
     <style>
         :root { --primary: #1a5d1a; --secondary: #28a745; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; padding: 20px; }
         .container { max-width: 1100px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
         .header { text-align: center; border-bottom: 4px solid var(--secondary); margin-bottom: 20px; padding-bottom: 10px; }
         .control-panel { background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 25px; border: 1px solid #dee2e6; text-align: center; }
@@ -19,18 +19,17 @@
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th { background: var(--secondary); color: white; padding: 15px; border: 1px solid #ddd; }
         td { padding: 12px; border: 1px solid #eee; text-align: center; }
-        .income-text { color: #28a745; font-weight: bold; }
-        .expense-text { color: #dc3545; font-weight: bold; }
+        .income-col { color: #28a745; font-weight: bold; }
+        .expense-col { color: #dc3545; font-weight: bold; }
         .total-row { background: #f1f1f1; font-weight: bold; }
         #loadingMsg { text-align: center; font-weight: bold; padding: 20px; color: var(--primary); }
 
-        /* പ്രിന്റ് സെറ്റിംഗ്സ് */
         @media print {
-            .control-panel, .btn, .header h1::after { display: none !important; }
+            .control-panel, .btn { display: none !important; }
             body { padding: 0; background: white; }
             .container { box-shadow: none; width: 100%; border: none; }
-            .hide-inc .income-col, .hide-inc th:nth-child(3) { display: none; }
-            .hide-exp .expense-col, .hide-exp th:nth-child(4) { display: none; }
+            .hide-inc .income-col, .hide-inc th:nth-child(3), .hide-inc .total-inc { display: none; }
+            .hide-exp .expense-col, .hide-exp th:nth-child(4), .hide-exp .total-exp { display: none; }
         }
     </style>
 </head>
@@ -68,37 +67,45 @@
 </div>
 
 <script>
-    // താങ്കളുടെ കൃത്യമായ ലിങ്ക് ഇതിൽ ചേർത്തിട്ടുണ്ട്
+    // താങ്കൾ അവസാനമായി എടുത്ത ഗൂഗിൾ സ്ക്രിപ്റ്റ് ലിങ്ക് ഇവിടെ ചേർത്തിട്ടുണ്ട്
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxl1z5-1PeuKcDvavYsABJnEgfV5qm70E-JkRFYB1xKjgENcFMsMNOAvW_aYGLpeKAE/exec';
     let allData = [];
 
     async function loadData() {
         try {
             const response = await fetch(scriptURL + "?action=read");
-            allData = await response.json();
-            document.getElementById('loadingMsg').style.display = 'none';
+            allData = await response.json();document.getElementById('loadingMsg').style.display = 'none';
             document.getElementById('reportTable').style.display = 'table';
             applyFilters();
         } catch (error) {
-            document.getElementById('loadingMsg').innerHTML = "വിവരങ്ങൾ ലഭിച്ചില്ല! ലിങ്ക് പരിശോധിക്കുക.";
+            document.getElementById('loadingMsg').innerHTML = "വിവരങ്ങൾ ലഭിച്ചില്ല! സ്ക്രിപ്റ്റ് ലിങ്ക് അല്ലെങ്കിൽ പെർമിഷൻ പരിശോധിക്കുക.";
         }
     }
 
+    // തീയതി ഏത് രൂപത്തിൽ നൽകിയാലും ശരിയാക്കുന്ന ഭാഗം
     function parseDate(dStr) {
         if (!dStr) return null;
-        let s = dStr.toString().replace(/\//g, '-');
-        let p = s.split('-');
-        if (p.length !== 3) return null;
+        let cleanDate = dStr.toString().replace(/[\/.]/g, '-');
+        let p = cleanDate.split('-');
+        if (p.length < 2) return null;
+
         let d = p[0].padStart(2, '0');
         let m = p[1].padStart(2, '0');
-        let y = p[2].length === 2 ? "20" + p[2] : p[2];
-        return { display: d + "-" + m + "-" + y, sortVal: new Date(y, m - 1, d).getTime() };
+        let y = p[2];
+        if (!y) { y = "2026"; } 
+        else if (y.length === 2) { y = "20" + y; }
+
+        return { 
+            display: d + "-" + m + "-" + y, 
+            sortVal: new Date(y, m - 1, d).getTime() 
+        };
     }
 
     function applyFilters() {
         let from = parseDate(document.getElementById('fromDate').value)?.sortVal || 0;
         let to = parseDate(document.getElementById('toDate').value)?.sortVal || 9999999999999;
         
+        // തീയതി അനുസരിച്ച് ലിസ്റ്റ് ക്രമീകരിക്കുന്നു
         let sorted = [...allData].sort((a, b) => (parseDate(a.date)?.sortVal  0) - (parseDate(b.date)?.sortVal  0));
         
         let rows = ''; let tInc = 0; let tExp = 0;
@@ -108,17 +115,26 @@
                 let inc = parseFloat(item.income) || 0;
                 let exp = parseFloat(item.expense) || 0;
                 tInc += inc; tExp += exp;
+                
+                // വൗച്ചർ നമ്പർ കൂടി വിവരണത്തിൽ ചേർക്കുന്നു
+                let desc = item.particulars;
+                if(item.voucher) desc += " (VNo: " + item.voucher + ")";
+
                 rows += <tr>
                     <td>${dInfo.display}</td>
-                    <td style="text-align:left;">${item.particulars}</td>
-                    <td class="income-col income-text">${inc}</td>
-                    <td class="expense-col expense-text">${exp}</td>
+                    <td style="text-align:left;">${desc}</td>
+                    <td class="income-col">${inc}</td>
+                    <td class="expense-col">${exp}</td>
                     <td style="font-weight:bold;">${tInc - tExp}</td>
                 </tr>;
             }
         });
         document.getElementById('tableBody').innerHTML = rows;
-        document.getElementById('totalRow').innerHTML = <td colspan="2">ആകെ</td><td class="income-col">${tInc}</td><td class="expense-col">${tExp}</td><td>${tInc - tExp}</td>;
+        document.getElementById('totalRow').innerHTML = 
+            <td colspan="2">ആകെ</td>
+            <td class="total-inc">${tInc}</td>
+            <td class="total-exp">${tExp}</td>
+            <td>${tInc - tExp}</td>;
     }
 
     function printReport(type) {
@@ -127,6 +143,7 @@
         if(type === 'exp') document.body.classList.add('hide-inc');
         window.print();
     }
+    
     window.onload = loadData;
 </script>
 </body>

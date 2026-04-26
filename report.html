@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>മസ്ജിദ് റിപ്പോർട്ട്</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f7f6; padding: 20px; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        th { background-color: #28a745; color: white; }
+        .income { color: green; font-weight: bold; }
+        .expense { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2 style="text-align:center;">വരവ് ചിലവ് റിപ്പോർട്ട്</h2>
+    <table id="myTable">
+        <thead>
+            <tr><th>തീയതി</th><th>വിവരണം</th><th>വരവ്</th><th>ചിലവ്</th><th>ബാലൻസ്</th></tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+</div>
+
+<script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzMyz3B7vYSUOVP2xYeIQLo3TuKIzmgmhVkn4RuU06nJSfb3gRf_jRB7uv4G4EJ9pfU/exec';
+
+    function loadData() {
+        fetch(scriptURL + "?action=read")
+            .then(res => res.json())
+            .then(data => {
+                // തീയതി അനുസരിച്ച് കൃത്യമായി ഓർഡർ ചെയ്യുന്നു
+                data.sort((a, b) => new Date(a.date) - new Date(b.date));
+                
+                let rows = '';
+                let totalIncome = 0;
+                let totalExpense = 0;
+
+                data.forEach(item => {
+                    let d = new Date(item.date);
+                    let formattedDate = isNaN(d.getTime()) ? item.date : 
+                        ("0" + d.getDate()).slice(-2) + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + d.getFullYear();
+                    
+                    let inc = parseFloat(item.income) || 0;
+                    let exp = parseFloat(item.expense) || 0;
+                    totalIncome += inc;
+                    totalExpense += exp;
+
+                    rows += <tr>
+                        <td>${formattedDate}</td>
+                        <td>${item.particulars}</td>
+                        <td class="income">${inc}</td>
+                        <td class="expense">${exp}</td>
+                        <td>${totalIncome - totalExpense}</td>
+                    </tr>;
+                });
+                document.getElementById('tableBody').innerHTML = rows;
+            });
+    }
+    window.onload = loadData;
+</script>
+</body>
+</html>

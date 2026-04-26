@@ -6,41 +6,57 @@
     <title>മസ്ജിദ് റിപ്പോർട്ട് ബുക്ക്</title>
     <style>
         :root { --primary: #1a5d1a; --secondary: #28a745; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; padding: 20px; }
-        .container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
-        .header { text-align: center; border-bottom: 4px solid var(--secondary); margin-bottom: 25px; padding-bottom: 10px; }
-        .control-panel { background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 25px; border: 1px solid #dee2e6; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; align-items: center; }
-        .btn { padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; transition: 0.3s; }
-        .btn-print { background: #6c757d; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; }
+        .container { max-width: 1100px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .header { text-align: center; border-bottom: 4px solid var(--secondary); margin-bottom: 20px; padding-bottom: 10px; }
+        .control-panel { background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 25px; border: 1px solid #dee2e6; text-align: center; }
+        .btn { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; margin: 5px; }
+        .btn-all { background: #6c757d; }
+        .btn-inc { background: #28a745; }
+        .btn-exp { background: #dc3545; }
         .btn-view { background: #007bff; }
-        input { padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
+        input { padding: 10px; border: 1px solid #ccc; border-radius: 6px; margin: 5px; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th { background: var(--secondary); color: white; padding: 15px; border: 1px solid #ddd; font-size: 16px; }
-        td { padding: 12px; border: 1px solid #eee; text-align: center; font-size: 15px; }
+        th { background: var(--secondary); color: white; padding: 15px; border: 1px solid #ddd; }
+        td { padding: 12px; border: 1px solid #eee; text-align: center; }
         .income-text { color: #28a745; font-weight: bold; }
         .expense-text { color: #dc3545; font-weight: bold; }
-        .total-row { background: #f1f1f1; font-weight: bold; font-size: 17px; }
-        #loadingMsg { text-align: center; font-size: 18px; font-weight: bold; color: var(--primary); padding: 20px; }
-        @media print { .control-panel, .btn { display: none !important; } body { padding: 0; background: white; } .container { box-shadow: none; width: 100%; } }
+        .total-row { background: #f1f1f1; font-weight: bold; }
+        #loadingMsg { text-align: center; font-weight: bold; padding: 20px; color: var(--primary); }
+
+        /* പ്രിന്റ് സെറ്റിംഗ്സ് */
+        @media print {
+            .control-panel, .btn, .header h1::after { display: none !important; }
+            body { padding: 0; background: white; }
+            .container { box-shadow: none; width: 100%; border: none; }
+            .hide-inc .income-col, .hide-inc th:nth-child(3) { display: none; }
+            .hide-exp .expense-col, .hide-exp th:nth-child(4) { display: none; }
+        }
     </style>
 </head>
-<body>
+<body id="mainBody">
 <div class="container">
     <div class="header"><h1>വരവ് ചിലവ് റിപ്പോർട്ട്</h1></div>
+    
     <div class="control-panel">
-        <label>മുതൽ:</label> <input type="text" id="fromDate" placeholder="DD-MM-YYYY">
-        <label>വരെ:</label> <input type="text" id="toDate" placeholder="DD-MM-YYYY">
-        <button class="btn btn-view" onclick="applyFilters()">റിപ്പോർട്ട് കാണുക</button>
-        <button class="btn btn-print" onclick="window.print()">പ്രിന്റ് എടുക്കുക</button>
+        <input type="text" id="fromDate" placeholder="DD-MM-YYYY (മുതൽ)">
+        <input type="text" id="toDate" placeholder="DD-MM-YYYY (വരെ)">
+        <button class="btn btn-view" onclick="applyFilters()">കാണുക</button>
+        <hr style="margin:15px 0; border:0; border-top:1px solid #ddd;">
+        <button class="btn btn-all" onclick="printReport('all')">മൊത്തം പ്രിന്റ്</button>
+        <button class="btn btn-inc" onclick="printReport('inc')">വരവ് മാത്രം പ്രിന്റ്</button>
+        <button class="btn btn-exp" onclick="printReport('exp')">ചിലവ് മാത്രം പ്രിന്റ്</button>
     </div>
-    <div id="loadingMsg">വിവരങ്ങൾ ശേഖരിക്കുന്നു... ദയവായി കാത്തിരിക്കുക.</div>
+
+    <div id="loadingMsg">വിവരങ്ങൾ ശേഖരിക്കുന്നു...</div>
+
     <table id="reportTable" style="display:none;">
         <thead>
             <tr>
                 <th>തീയതി</th>
                 <th>വിവരണം</th>
-                <th>വരവ്</th>
-                <th>ചിലവ്</th>
+                <th class="income-col">വരവ്</th>
+                <th class="expense-col">ചിലവ്</th>
                 <th>ബാക്കി</th>
             </tr>
         </thead>
@@ -52,6 +68,7 @@
 </div>
 
 <script>
+    // താങ്കളുടെ കൃത്യമായ ലിങ്ക് ഇതിൽ ചേർത്തിട്ടുണ്ട്
     const scriptURL = 'https://script.google.com/macros/s/AKfycbyn9Fq2Eu6K5-xCC1-zMRXIzRga_tvfYSOOuvikYfgQHBfHgsJCFYOALMmbXDakNHzv/exec';
     let allData = [];
 
@@ -63,7 +80,7 @@
             document.getElementById('reportTable').style.display = 'table';
             applyFilters();
         } catch (error) {
-            document.getElementById('loadingMsg').innerHTML = "വിവരങ്ങൾ ലഭിച്ചില്ല! Apps Script ലിങ്ക് ശരിയാണോ എന്ന് പരിശോധിക്കുക.";
+            document.getElementById('loadingMsg').innerHTML = "വിവരങ്ങൾ ലഭിച്ചില്ല! ലിങ്ക് പരിശോധിക്കുക.";
         }
     }
 
@@ -72,35 +89,43 @@
         let s = dStr.toString().replace(/\//g, '-');
         let p = s.split('-');
         if (p.length !== 3) return null;
-        let day = p[0].padStart(2, '0');
-        let month = p[1].padStart(2, '0');
-        let year = p[2].length === 2 ? "20" + p[2] : p[2];
-        return { display: day + "-" + month + "-" + year, sortVal: new Date(year, month - 1, day).getTime() };
+        let d = p[0].padStart(2, '0');
+        let m = p[1].padStart(2, '0');
+        let y = p[2].length === 2 ? "20" + p[2] : p[2];
+        return { display: d + "-" + m + "-" + y, sortVal: new Date(y, m - 1, d).getTime() };
     }
+
     function applyFilters() {
-        let fromDate = parseDate(document.getElementById('fromDate').value)?.sortVal || 0;
-        let toDate = parseDate(document.getElementById('toDate').value)?.sortVal || 9999999999999;
+        let from = parseDate(document.getElementById('fromDate').value)?.sortVal || 0;
+        let to = parseDate(document.getElementById('toDate').value)?.sortVal || 9999999999999;
         
-        let sortedData = [...allData].sort((a, b) => (parseDate(a.date)?.sortVal  0) - (parseDate(b.date)?.sortVal  0));
+        let sorted = [...allData].sort((a, b) => (parseDate(a.date)?.sortVal  0) - (parseDate(b.date)?.sortVal  0));
         
-        let rows = ''; let totalInc = 0; let totalExp = 0;
-        sortedData.forEach(item => {
+        let rows = ''; let tInc = 0; let tExp = 0;
+        sorted.forEach(item => {
             let dInfo = parseDate(item.date);
-            if (dInfo && dInfo.sortVal >= fromDate && dInfo.sortVal <= toDate) {
+            if (dInfo && dInfo.sortVal >= from && dInfo.sortVal <= to) {
                 let inc = parseFloat(item.income) || 0;
                 let exp = parseFloat(item.expense) || 0;
-                totalInc += inc; totalExp += exp;
+                tInc += inc; tExp += exp;
                 rows += <tr>
                     <td>${dInfo.display}</td>
                     <td style="text-align:left;">${item.particulars}</td>
-                    <td class="income-text">${inc.toFixed(2)}</td>
-                    <td class="expense-text">${exp.toFixed(2)}</td>
-                    <td style="font-weight:bold;">${(totalInc - totalExp).toFixed(2)}</td>
+                    <td class="income-col income-text">${inc}</td>
+                    <td class="expense-col expense-text">${exp}</td>
+                    <td style="font-weight:bold;">${tInc - tExp}</td>
                 </tr>;
             }
         });
         document.getElementById('tableBody').innerHTML = rows;
-        document.getElementById('totalRow').innerHTML = <td colspan="2">ആകെ</td><td>${totalInc.toFixed(2)}</td><td>${totalExp.toFixed(2)}</td><td>${(totalInc - totalExp).toFixed(2)}</td>;
+        document.getElementById('totalRow').innerHTML = <td colspan="2">ആകെ</td><td class="income-col">${tInc}</td><td class="expense-col">${tExp}</td><td>${tInc - tExp}</td>;
+    }
+
+    function printReport(type) {
+        document.body.classList.remove('hide-inc', 'hide-exp');
+        if(type === 'inc') document.body.classList.add('hide-exp');
+        if(type === 'exp') document.body.classList.add('hide-inc');
+        window.print();
     }
     window.onload = loadData;
 </script>

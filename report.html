@@ -3,63 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>പടന്നകാന്തിലോട്ട്മസ്ജിദ്&മദ്രസറിപ്പോർട്ട്</title>
+    <title>മസ്ജിദ് & മദ്രസ റിപ്പോർട്ട്</title>
     <style>
-        body { font-family: sans-serif; background-color: #f4f7f6; padding: 20px; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
-        th { background-color: #28a745; color: white; }
-        .income { color: green; font-weight: bold; }
-        .expense { color: red; font-weight: bold; }
+        :root { --primary-green: #1a5d1a; --light-green: #28a745; --bg-gray: #f4f7f6; }
+        body { font-family: sans-serif; background-color: var(--bg-gray); padding: 15px; margin: 0; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .header { text-align: center; border-bottom: 3px solid var(--light-green); padding-bottom: 10px; margin-bottom: 20px; }
+        .search-card { background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: flex-end; border: 1px solid #ddd; }
+        .input-group { display: flex; flex-direction: column; font-size: 13px; font-weight: bold; }
+        input { padding: 8px; border-radius: 5px; border: 1px solid #ccc; margin-top: 5px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; }
+        .btn-search { background: var(--primary-green); }
+        .btn-print { background: var(--light-green); }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: var(--light-green); color: white; padding: 10px; border: 1px solid #ddd; }
+        td { padding: 10px; border: 1px solid #eee; text-align: center; }
+        .income-amt { color: green; font-weight: bold; }
+        .expense-amt { color: red; font-weight: bold; }
+        @media print { .search-card, .btn { display: none; } }
     </style>
 </head>
 <body>
+
 <div class="container">
-    <h2 style="text-align:center;">പടന്നകാന്തിലോട്ട്മസ്ജിദ്&മദ്രസ വരവ് ചിലവ് റിപ്പോർട്ട്</h2>
+    <div class="header"><h2>വരവ് ചിലവ് റിപ്പോർട്ട്</h2></div>
+
+    <div class="search-card">
+        <div class="input-group"><label>തുടങ്ങുന്ന തീയതി:</label><input type="text" id="fromDate" placeholder="DD-MM-YYYY"></div>
+        <div class="input-group"><label>അവസാന തീയതി:</label><input type="text" id="toDate" placeholder="DD-MM-YYYY"></div>
+        <button class="btn btn-search" onclick="applyFilters()">റിപ്പോർട്ട് കാണുക</button>
+        <button class="btn btn-print" onclick="window.print()">Print എടുക്കുക</button>
+    </div>
+
     <table id="myTable">
         <thead>
-            <tr><th>തീയതി</th><th>വിവരണം</th><th>വരവ്</th><th>ചിലവ്</th><th>ബാലൻസ്</th></tr>
+            <tr>
+                <th>തീയതി</th>
+                <th>വിവരണം</th>
+                <th>വരവ്</th>
+                <th>ചിലവ്</th>
+                <th>ബാലൻസ്</th>
+            </tr>
         </thead>
         <tbody id="tableBody"></tbody>
+        <tfoot>
+            <tr id="totalRow" style="background:#eee; font-weight:bold;">
+                </tr>
+        </tfoot>
     </table>
 </div>
 
 <script>
+    // നിങ്ങളുടെ ഗൂഗിൾ ഷീറ്റ് സ്ക്രിപ്റ്റ് ലിങ്ക്
     const scriptURL = 'https://script.google.com/macros/s/AKfycbzMyz3B7vYSUOVP2xYeIQLo3TuKIzmgmhVkn4RuU06nJSfb3gRf_jRB7uv4G4EJ9pfU/exec';
+
+    let allData = [];
 
     function loadData() {
         fetch(scriptURL + "?action=read")
             .then(res => res.json())
             .then(data => {
-                // തീയതി അനുസരിച്ച് കൃത്യമായി ഓർഡർ ചെയ്യുന്നു
-                data.sort((a, b) => new Date(a.date) - new Date(b.date));
-                
-                let rows = '';
-                let totalIncome = 0;
-                let totalExpense = 0;
-
-                data.forEach(item => {
-                    let d = new Date(item.date);
-                    let formattedDate = isNaN(d.getTime()) ? item.date : 
-                        ("0" + d.getDate()).slice(-2) + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + d.getFullYear();
-                    
-                    let inc = parseFloat(item.income) || 0;
-                    let exp = parseFloat(item.expense) || 0;
-                    totalIncome += inc;
-                    totalExpense += exp;
-
-                    rows += <tr>
-                        <td>${formattedDate}</td>
-                        <td>${item.particulars}</td>
-                        <td class="income">${inc}</td>
-                        <td class="expense">${exp}</td>
-                        <td>${totalIncome - totalExpense}</td>
-                    </tr>;
-                });
-                document.getElementById('tableBody').innerHTML = rows;
+                allData = data;
+                applyFilters();
             });
     }
+
+    // തീയതി ശരിയാക്കാനുള്ള ഫങ്ക്ഷൻ
+    function parseDate(dateStr) {
+        if (!dateStr) return null;
+        let s = dateStr.toString().replace(/\//g, '-');
+        let parts = s.split('-');
+        if (parts.length !== 3) return null;
+        let d = parts[0].padStart(2, '0');
+        let m = parts[1].padStart(2, '0');
+        let y = parts[2].length === 2 ? "20" + parts[2] : parts[2];
+        return {
+            display: d + "-" + m + "-" + y,
+            sortValue: new Date(y, m - 1, d).getTime()
+        };
+    }
+
+    function applyFilters() {
+        // തീയതി ക്രമത്തിൽ അടുക്കുന്നു
+    let sorted = [...allData].sort((a, b) => (parseDate(a.date)?.sortValue  0) - (parseDate(b.date)?.sortValue  0));
+        
+        let from = parseDate(document.getElementById('fromDate').value)?.sortValue || 0;
+        let to = parseDate(document.getElementById('toDate').value)?.sortValue || 9999999999999;
+
+        let rows = '';
+        let tInc = 0; let tExp = 0;
+
+        sorted.forEach(item => {
+            let dInfo = parseDate(item.date);
+            if (dInfo && dInfo.sortValue >= from && dInfo.sortValue <= to) {
+                let inc = parseFloat(item.income) || 0;
+                let exp = parseFloat(item.expense) || 0;
+                tInc += inc; tExp += exp;
+                rows += <tr>
+                    <td>${dInfo.display}</td>
+                    <td>${item.particulars}</td>
+                    <td class="income-amt">${inc}</td>
+                    <td class="expense-amt">${exp}</td>
+                    <td>${tInc - tExp}</td>
+                </tr>;
+            }
+        });
+
+        document.getElementById('tableBody').innerHTML = rows;
+        document.getElementById('totalRow').innerHTML = 
+            <td colspan="2">ആകെ (Total)</td>
+            <td>${tInc}</td>
+            <td>${tExp}</td>
+            <td>${tInc - tExp}</td>
+        ;
+    }
+
     window.onload = loadData;
 </script>
 </body>

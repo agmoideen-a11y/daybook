@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>മസ്ജിദ് & മദ്രസ ഡേ ബുക്ക് റിപ്പോർട്ട്</title>
+    <title>മസ്ജിദ് & മദ്രസ റിപ്പോർട്ട് ബുക്ക്</title>
     <style>
         :root { --primary-green: #1a5d1a; --light-green: #28a745; --bg-gray: #f4f7f6; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-gray); padding: 15px; margin: 0; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg-gray); padding: 15px; margin: 0; }
         .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .header { text-align: center; border-bottom: 3px solid var(--light-green); padding-bottom: 10px; margin-bottom: 20px; }
         
-        .control-panel { background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #ddd; }
+        .control-panel { background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #ddd; text-align: center; }
         .filter-row { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; align-items: flex-end; margin-bottom: 15px; }
         .input-group { display: flex; flex-direction: column; gap: 5px; font-weight: bold; font-size: 13px; }
         input { padding: 8px; border-radius: 5px; border: 1px solid #ccc; }
@@ -29,17 +29,16 @@
         .expense-col { color: red; font-weight: bold; }
         .total-row { background: #eee; font-weight: bold; font-size: 16px; }
 
-        /* പ്രിന്റ് ചെയ്യുമ്പോൾ മാത്രം വരുന്ന മാറ്റങ്ങൾ */
         @media print {
             .control-panel, .btn { display: none !important; }
             body { background: white; padding: 0; }
-            .container { box-shadow: none; border: none; width: 100%; }
-            .hide-income .income-col, .hide-income th:nth-child(3), .hide-income .total-income-cell { display: none; }
-            .hide-expense .expense-col, .hide-expense th:nth-child(4), .hide-expense .total-expense-cell { display: none; }
+            .container { box-shadow: none; border: none; width: 100%; max-width: 100%; }
+            .hide-income .income-col, .hide-income th:nth-child(3), .hide-income .total-inc-cell { display: none; }
+            .hide-expense .expense-col, .hide-expense th:nth-child(4), .hide-expense .total-exp-cell { display: none; }
         }
     </style>
 </head>
-<body id="reportContent">
+<body>
 
 <div class="container">
     <div class="header">
@@ -49,12 +48,12 @@
     <div class="control-panel">
         <div class="filter-row">
             <div class="input-group">
-                <label>തുടങ്ങുന്ന തീയതി:</label>
-                <input type="text" id="fromDate" placeholder="DD-MM-YYYY">
+                <label>മുതൽ (DD-MM-YYYY):</label>
+                <input type="text" id="fromDate" placeholder="01-01-2026">
             </div>
             <div class="input-group">
-                <label>അവസാന തീയതി:</label>
-                <input type="text" id="toDate" placeholder="DD-MM-YYYY">
+                <label>വരെ (DD-MM-YYYY):</label>
+                <input type="text" id="toDate" placeholder="31-12-2026">
             </div>
             <button class="btn btn-search" onclick="applyFilters()">കാണുക</button>
         </div>
@@ -66,9 +65,7 @@
         </div>
     </div>
 
-    <div id="loadingMsg" style="text-align:center; font-weight:bold;">വിവരങ്ങൾ ശേഖരിക്കുന്നു...</div>
-
-    <table id="myTable" style="display:none;">
+    <table id="myTable">
         <thead>
             <tr>
                 <th>തീയതി</th>
@@ -78,40 +75,41 @@
                 <th>ബാലൻസ്</th>
             </tr>
         </thead>
-        <tbody id="tableBody"></tbody>
+        <tbody id="tableBody">
+            <tr><td colspan="5">വിവരങ്ങൾ ശേഖരിക്കുന്നു...</td></tr>
+        </tbody>
         <tfoot>
             <tr id="totalRow" class="total-row"></tr>
         </tfoot>
     </table>
 </div>
-
 <script>
-    // പ്രധാനം: ഇതിൽ താങ്കളുടെ പുതിയ Apps Script Web App URL ചേർക്കുക
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbzMyz3B7vYSUOVP2xYeIQLo3TuKIzmgmhVkn4RuU06nJSfb3gRf_jRB7uv4G4EJ9pfU/exec';
-
+    // താങ്കൾ നൽകിയ പുതിയ ലിങ്ക്
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbw5CwyhYRp0qoQVWayYh5QqczKKFFHm2v6QiIhc22U5XKgeWfwxPW4FrzlVmH2BF50K/exec';
     let allData = [];
 
     async function loadData() {
         try {
             const response = await fetch(scriptURL + "?action=read");
             allData = await response.json();
-            document.getElementById('loadingMsg').style.display = 'none';
-            document.getElementById('myTable').style.display = 'table';
             applyFilters();
-        } catch (error) {
-            document.getElementById('loadingMsg').innerHTML = "ഡാറ്റ ലഭിച്ചില്ല. സ്ക്രിപ്റ്റ് ലിങ്ക് ശരിയാണോ എന്ന് പരിശോധിക്കുക.";
+        } catch (e) {
+            document.getElementById('tableBody').innerHTML = '<tr><td colspan="5">ഡാറ്റ ലഭ്യമായില്ല. ലിങ്ക് പരിശോധിക്കുക.</td></tr>';
         }
     }
 
-    // തീയതിയെ കൃത്യമായി ഓർഡർ ചെയ്യാനുള്ള ഫങ്ക്ഷൻ
-    function parseDate(dateStr) {
+    // തീയതി ശരിയാക്കാനും ക്രമീകരിക്കാനുമുള്ള ഫങ്ക്ഷൻ
+    function parseDateInfo(dateStr) {
         if (!dateStr) return null;
         let s = dateStr.toString().replace(/\//g, '-');
         let parts = s.split('-');
         if (parts.length !== 3) return null;
+        
         let d = parts[0].padStart(2, '0');
         let m = parts[1].padStart(2, '0');
-        let y = parts[2].length === 2 ? "20" + parts[2] : parts[2];
+        let y = parts[2];
+        if (y.length === 2) y = "20" + y;
+
         return {
             display: d + "-" + m + "-" + y,
             sortValue: new Date(y, m - 1, d).getTime()
@@ -119,18 +117,16 @@
     }
 
     function applyFilters() {
-        // തീയതി അനുസരിച്ച് ലിസ്റ്റ് ക്രമീകരിക്കുന്നു
-        let sorted = [...allData].sort((a, b) => (parseDate(a.date)?.sortValue  0) - (parseDate(b.date)?.sortValue  0));
+        // തീയതി ക്രമത്തിൽ അടുക്കുന്നു
+        let sorted = [...allData].sort((a, b) => (parseDateInfo(a.date)?.sortValue  0) - (parseDateInfo(b.date)?.sortValue  0));
         
-        let fromInput = document.getElementById('fromDate').value;
-        let toInput = document.getElementById('toDate').value;
-        let from = parseDate(fromInput)?.sortValue || 0;
-        let to = parseDate(toInput)?.sortValue || 9999999999999;
+        let from = parseDateInfo(document.getElementById('fromDate').value)?.sortValue || 0;
+        let to = parseDateInfo(document.getElementById('toDate').value)?.sortValue || 9999999999999;
 
         let rows = ''; let tInc = 0; let tExp = 0;
 
         sorted.forEach(item => {
-            let dInfo = parseDate(item.date);
+            let dInfo = parseDateInfo(item.date);
             if (dInfo && dInfo.sortValue >= from && dInfo.sortValue <= to) {
                 let inc = parseFloat(item.income) || 0;
                 let exp = parseFloat(item.expense) || 0;
@@ -138,32 +134,26 @@
                 rows += <tr>
                     <td>${dInfo.display}</td>
                     <td style="text-align:left;">${item.particulars || ''}</td>
-                    <td class="income-col">${inc.toFixed(2)}</td>
-                    <td class="expense-col">${exp.toFixed(2)}</td>
-                    <td>${(tInc - tExp).toFixed(2)}</td>
+                    <td class="income-col">${inc}</td>
+                    <td class="expense-col">${exp}</td>
+                    <td>${tInc - tExp}</td>
                 </tr>;
             }
         });
 
-        document.getElementById('tableBody').innerHTML = rows;
+        document.getElementById('tableBody').innerHTML = rows || '<tr><td colspan="5">ഈ തീയതികളിൽ വിവരങ്ങൾ ലഭ്യമല്ല.</td></tr>';
         document.getElementById('totalRow').innerHTML = 
             <td colspan="2">ആകെ (Total)</td>
-            <td class="income-col total-income-cell">${tInc.toFixed(2)}</td>
-            <td class="expense-col total-expense-cell">${tExp.toFixed(2)}</td>
-            <td>${(tInc - tExp).toFixed(2)}</td>
+            <td class="income-col total-inc-cell">${tInc}</td>
+            <td class="expense-col total-exp-cell">${tExp}</td>
+            <td>${tInc - tExp}</td>
         ;
     }
 
     function printReport(type) {
-        const body = document.body;
-        body.classList.remove('hide-income', 'hide-expense');
-        
-        if (type === 'income') {
-            body.classList.add('hide-expense');
-        } else if (type === 'expense') {
-            body.classList.add('hide-income');
-        }
-        
+        document.body.classList.remove('hide-income', 'hide-expense');
+        if (type === 'income') document.body.classList.add('hide-expense');
+        if (type === 'expense') document.body.classList.add('hide-income');
         window.print();
     }
 

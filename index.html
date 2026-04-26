@@ -9,8 +9,9 @@
         .form-container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); max-width: 450px; margin: auto; }
         h2 { text-align: center; color: #1a5d1a; border-bottom: 2px solid #28a745; padding-bottom: 10px; }
         label { display: block; margin-top: 15px; font-weight: bold; }
-        input { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; background: #28a745; color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        input { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 15px; background: #28a745; color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.3s; }
+        button:disabled { background: #95a5a6; }
     </style>
 </head>
 <body>
@@ -19,17 +20,23 @@
     <form id="entryForm">
         <label>തീയതി (DD-MM-YYYY)</label>
         <input type="text" id="date" placeholder="ഉദാ: 21-04-2026" required>
-        <label>വൗച്ചർ&റസീപ്റ്റ് നമ്പർ</label>
-        <input type="text" id="voucher">
+        
+        <label>വൗച്ചർ / റസീപ്റ്റ് നമ്പർ</label>
+        <input type="text" id="voucher" placeholder="ഉദാ: V101">
+        
         <label>വിവരണം</label>
-        <input type="text" id="particulars" required>
+        <input type="text" id="particulars" placeholder="വിവരണം നൽകുക" required>
+        
         <label>വരവ് (Income)</label>
-        <input type="number" id="income" value="0">
+        <input type="number" id="income" value="0" step="any" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'">
+        
         <label>ചിലവ് (Expense)</label>
-        <input type="number" id="expense" value="0">
+        <input type="number" id="expense" value="0" step="any" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'">
+        
         <button type="submit" id="submitBtn">സേവ് ചെയ്യുക</button>
     </form>
 </div>
+
 <script>
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxl1z5-1PeuKcDvavYsABJnEgfV5qm70E-JkRFYB1xKjgENcFMsMNOAvW_aYGLpeKAE/exec';
     const form = document.getElementById('entryForm');
@@ -39,21 +46,33 @@
         e.preventDefault();
         btn.disabled = true;
         btn.innerText = "അയക്കുന്നു...";
-        let finalURL = scriptURL + "?date=" + encodeURIComponent(document.getElementById('date').value) +
-            "&voucher=" + encodeURIComponent(document.getElementById('voucher').value) +
-            "&particulars=" + encodeURIComponent(document.getElementById('particulars').value) +
-            "&income=" + encodeURIComponent(document.getElementById('income').value) +
-            "&expense=" + encodeURIComponent(document.getElementById('expense').value);
+
+        let dateVal = document.getElementById('date').value;
+        let voucherVal = document.getElementById('voucher').value;
+        let particularsVal = document.getElementById('particulars').value;
+        let incomeVal = document.getElementById('income').value || 0;
+        let expenseVal = document.getElementById('expense').value || 0;
+
+        let finalURL = scriptURL + 
+            "?date=" + encodeURIComponent(dateVal) +
+            "&voucher=" + encodeURIComponent(voucherVal) +
+            "&particulars=" + encodeURIComponent(particularsVal) +
+            "&income=" + encodeURIComponent(incomeVal) +
+            "&expense=" + encodeURIComponent(expenseVal);
 
         fetch(finalURL, { method: 'POST', mode: 'no-cors' })
         .then(() => {
-            alert("സേവ് ചെയ്തു!");
+            alert("വിവരങ്ങൾ വിജയകരമായി സേവ് ചെയ്തു!");
             form.reset();
+            // റീസെറ്റ് ചെയ്യുമ്പോഴും 0 വരാൻ വേണ്ടി
+            document.getElementById('income').value = 0;
+            document.getElementById('expense').value = 0;
             btn.disabled = false;
             btn.innerText = "സേവ് ചെയ്യുക";
-        }).catch(() => {
-            alert("Error!");
+        }).catch(error => {
+            alert("Error! സേവ് ചെയ്യാൻ പറ്റിയില്ല.");
             btn.disabled = false;
+            btn.innerText = "സേവ് ചെയ്യുക";
         });
     });
 </script>
